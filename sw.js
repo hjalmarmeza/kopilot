@@ -1,8 +1,9 @@
-const CACHE = 'kopilot-minimal-v9.3';
+const CACHE = 'kopilot-icon-v9.4';
 const FILES = [
     './index.html?v=9.3',
     './style.css?v=8.2',
     './app.js?v=9.3',
+    './icon.png',
     './manifest.json',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap',
     'https://fonts.googleapis.com/icon?family=Material+Icons+Round'
