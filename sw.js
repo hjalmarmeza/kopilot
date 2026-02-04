@@ -1,43 +1,27 @@
-const CACHE_NAME = 'kopilot-premium-v3.2'; // BUMP VERSION TO FORCE UPDATE
+const CACHE_NAME = 'kopilot-bento-v4.0-final'; // NEW NAME
 const ASSETS = [
-    './',
-    './index.html',
-    './style.css',
-    './app.js',
-    './manifest.json',
-    'https://fonts.googleapis.com/icon?family=Material+Icons+Round',
-    'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap'
+    './index.html?v=4.0',
+    './style.css?v=4.0',
+    './app.js?v=4.0',
+    './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
-    self.skipWaiting(); // Force activate immediately
-    e.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-    );
+    self.skipWaiting();
+    e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
 });
 
 self.addEventListener('activate', (e) => {
-    e.waitUntil(
-        caches.keys().then((keys) => {
-            return Promise.all(
-                keys.map((key) => {
-                    if (key !== CACHE_NAME) return caches.delete(key);
-                })
-            );
-        })
-    );
-    self.clients.claim(); // Take control immediately
+    e.waitUntil(caches.keys().then(keys => Promise.all(
+        keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)
+    )));
+    self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
-    // Si es llamada a la API de Google, NO CACHEAR (Network Only)
     if (e.request.url.includes('script.google.com')) {
         e.respondWith(fetch(e.request));
         return;
     }
-
-    // Para el resto (archivos estáticos), Cache First
-    e.respondWith(
-        caches.match(e.request).then((res) => res || fetch(e.request))
-    );
+    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });

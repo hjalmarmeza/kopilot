@@ -6,89 +6,93 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Kopilot</title>
-    <!-- Premium Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <meta name="theme-color" content="#0f172a">
+    <!-- CACHE BUST v4 -->
+    <link rel="stylesheet" href="style.css?v=4.0">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-    <!-- Header Glass -->
-    <header class="app-header">
-        <div class="logo">
-            <h1>Kopilot</h1>
-            <span>Smart Drive</span>
-        </div>
-        <button class="add-btn-header" onclick="App.openAddModal()">
+    <header class="header">
+        <h1>Kopilot</h1>
+        <button class="add-btn" onclick="App.openAddModal()">
             <span class="material-icons-round">add</span>
         </button>
     </header>
 
-    <!-- Content -->
-    <main class="main-scroll">
+    <div class="scroll-area">
+        <div class="section-title">
+            <span>Pilotos</span>
+        </div>
 
-        <!-- Widgets Grid -->
-        <div id="passengers-grid" class="widgets-grid">
-            <!-- Loader -->
-            <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.3); padding: 50px;">
-                <span class="material-icons-round spin" style="font-size: 2rem;">sync</span>
+        <div id="grid" class="grid">
+            <div style="grid-column:1/-1; text-align:center; padding:50px; color:#3a3a3c;">
+                <span class="material-icons-round spin">sync</span>
             </div>
         </div>
 
-        <!-- History -->
-        <div class="history-section">
-            <h3>Bitácora</h3>
-            <div id="history-container">
-            </div>
+        <div class="section-title">
+            <span>Hoy</span>
+            <span class="material-icons-round" onclick="App.confirmReset()"
+                style="cursor:pointer; opacity:0.5;">delete_sweep</span>
         </div>
-    </main>
 
-    <!-- Bottom Nav (Floating Pill) -->
-    <nav class="floating-nav">
-        <button class="nav-pill active" onclick="App.switchTab('home')">
-            <span class="material-icons-round">grid_view</span>
-        </button>
-        <button class="nav-pill" onclick="App.refreshData()">
+        <div id="history-list">
+            <!-- Items -->
+        </div>
+    </div>
+
+    <!-- Floating Dock -->
+    <div class="dock">
+        <button class="dock-btn" onclick="App.refreshData()">
             <span class="material-icons-round">refresh</span>
         </button>
-    </nav>
+    </div>
 
-    <!-- Premium Modal (Bottom Sheet) -->
-    <div id="p-modal" class="modal">
-        <div class="modal-card">
-            <h2 style="margin-top:0; margin-bottom:24px; font-size: 1.5rem;">Pasajero</h2>
+    <!-- Bottom Sheet -->
+    <div id="sheet" class="sheet-overlay">
+        <div class="sheet">
+            <h2 style="margin:0 0 20px 0;">Configurar</h2>
             <form onsubmit="App.handleForm(event)">
                 <input type="hidden" id="edit-orig-name">
-                <input type="text" id="inp-name" class="input-field" placeholder="Nombre" required autocomplete="off">
-                <input type="number" id="inp-price" class="input-field" placeholder="Precio ($)" step="0.5"
-                    inputmode="decimal" required>
 
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" class="action-btn"
-                        style="background: transparent; color: white; border:1px solid rgba(255,255,255,0.2);"
-                        onclick="App.closeModal()">Cancelar</button>
-                    <button type="submit" class="action-btn">Guardar</button>
+                <div class="input-grp">
+                    <input type="text" id="inp-name" class="input-reset" placeholder="Nombre" required
+                        autocomplete="off">
+                </div>
+
+                <div class="input-grp">
+                    <input type="number" id="inp-price" class="input-reset" placeholder="Precio ($)" step="0.5"
+                        inputmode="decimal" required>
+                </div>
+
+                <div class="sheet-actions">
+                    <button type="button" id="btn-del" class="btn-sheet btn-del" onclick="App.deletePassenger()"
+                        style="display:none;">
+                        <span class="material-icons-round">delete</span>
+                    </button>
+                    <button type="button" class="btn-sheet btn-cancel" onclick="App.closeSheet()">Cancelar</button>
+                    <button type="submit" class="btn-sheet btn-save">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast-bar">
-        <span class="material-icons-round t-icon">check_circle</span>
-        <span id="toast-msg">Viaje registrado</span>
-    </div>
+    <div id="feedback" class="confetti">Acción completada</div>
 
-    <script src="app.js"></script>
-    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
+    <script src="app.js?v=4.0"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                reg.update(); // Force Check
+            });
+        }
+    </script>
 </body>
 
 </html>
