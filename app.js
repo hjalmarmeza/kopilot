@@ -6,7 +6,7 @@ const App = {
     recentTrips: [],
 
     init: async () => {
-        console.log("Kopilot 3.0 Ultra Init...");
+        console.log("Kopilot 3.1 Ultra Init...");
         App.checkConnection();
 
         const cachedConfig = localStorage.getItem('kp_passengers');
@@ -154,6 +154,9 @@ const App = {
         document.getElementById('edit-orig-name').value = "";
         document.getElementById('inp-name').value = "";
         document.getElementById('inp-price').value = "";
+        const delBtn = document.getElementById('btn-delete');
+        if (delBtn) delBtn.style.display = 'none';
+
         document.getElementById('p-modal').classList.add('active');
         setTimeout(() => document.getElementById('inp-name').focus(), 100);
     },
@@ -162,7 +165,52 @@ const App = {
         document.getElementById('edit-orig-name').value = name;
         document.getElementById('inp-name').value = name;
         document.getElementById('inp-price').value = price;
+        const delBtn = document.getElementById('btn-delete');
+        if (delBtn) {
+            delBtn.style.display = 'block';
+            delBtn.style.justifyContent = 'center'; // Fix alignment if needed
+        }
         document.getElementById('p-modal').classList.add('active');
+    },
+
+    deletePassenger: async () => {
+        const name = document.getElementById('edit-orig-name').value;
+        if (!confirm(`¿Eliminar a ${name}?`)) return;
+
+        App.closeModal();
+        App.showToast("Eliminando...", true);
+
+        // Optimistic delete
+        App.passengers = App.passengers.filter(p => p.nombre !== name);
+        App.renderDashboard();
+
+        try {
+            const params = new URLSearchParams({ action: 'delete_passenger', nombre: name });
+            await fetch(`${API_URL}?${params.toString()}`, { method: 'POST' });
+            App.showToast("Eliminado");
+        } catch (e) {
+            App.showToast("Error al eliminar", true);
+        }
+    },
+
+    confirmReset: async () => {
+        if (!confirm("⚠️ ¿REINICIAR BITÁCORA?\n\nSe archivará el historial actual y se empezará de cero.")) return;
+
+        App.showToast("Reiniciando...", true);
+
+        try {
+            const params = new URLSearchParams({ action: 'reset_history' });
+            await fetch(`${API_URL}?${params.toString()}`, { method: 'POST' });
+
+            App.recentTrips = [];
+            App.tripCounts = {};
+            App.renderDashboard();
+
+            App.showToast("Bitácora nueva lista ✨");
+            App.refreshData();
+        } catch (e) {
+            App.showToast("Error reset", true);
+        }
     },
 
     closeModal: () => {
