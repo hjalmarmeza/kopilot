@@ -5,91 +5,89 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kopilot</title>
-    <!-- CACHE BUST v5.0 -->
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <title>Kopilot Sunset</title>
+    <!-- CSS v6.0 -->
+    <link rel="stylesheet" href="style.css?v=6.0">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#FF9EAA">
     <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- FONTS: Inter & Material -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
 
 <body>
 
-    <!-- TAB 1: PILOTS -->
-    <div id="tab-pilots" class="tab-content active">
-        <header class="page-header">
-            <div class="page-title">Pilotos</div>
-            <button class="icon-btn" onclick="App.openAddModal()"><span class="material-icons-round">add</span></button>
+    <!-- TAB 1: DASHBOARD -->
+    <div id="tab-dash" class="tab-view active">
+        <header class="header">
+            <h1 class="logo-text">Kopilot</h1>
+            <button class="action-icon" onclick="App.openAdd()">
+                <span class="material-icons-round">add</span>
+            </button>
         </header>
 
-        <div id="grid-container" class="circle-grid">
-            <!-- Circles Injected Here -->
-            <div style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">
-                <span class="material-icons-round spin">sync</span>
+        <div id="grid" class="grid-container">
+            <div style="grid-column:1/-1; text-align:center; padding:60px; color:white; opacity:0.8;">
+                <span class="material-icons-round spin" style="font-size:30px;">sync</span>
             </div>
         </div>
     </div>
 
-    <!-- TAB 2: LOGS -->
-    <div id="tab-logs" class="tab-content">
-        <header class="page-header">
-            <div class="page-title">Bitácora</div>
-            <button class="icon-btn" onclick="App.confirmReset()"
-                style="color:#ff3b30; background:rgba(255,59,48,0.1);">
-                <span class="material-icons-round">delete</span>
+    <!-- TAB 2: HISTORY -->
+    <div id="tab-hist" class="tab-view">
+        <header class="header">
+            <h1 class="logo-text" style="font-size: 2rem;">Bitácora</h1>
+            <button class="action-icon" onclick="App.confirmReset()"
+                style="color: #ff3b30; background: rgba(255,255,255,0.8);">
+                <span class="material-icons-round">delete_sweep</span>
             </button>
         </header>
 
-        <div id="log-list" class="log-list">
-            <!-- Logs Injected Here -->
+        <div id="hist-list">
+            <!-- Items -->
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
-    <nav class="nav-bar">
-        <button class="nav-item active" onclick="App.switchTab('pilots')">
-            <span class="material-icons-round">grid_view</span>
-            Pilotos
+    <!-- NAV DOCK -->
+    <nav class="nav-dock">
+        <button class="nav-btn active" onclick="App.nav('dash')">
+            <span class="material-icons-round">fingerprint</span>
         </button>
-        <button class="nav-item" onclick="App.switchTab('logs')">
+        <button class="nav-btn" onclick="App.nav('hist')">
             <span class="material-icons-round">history</span>
-            Bitácora
         </button>
-        <button class="nav-item" onclick="App.refresh()">
-            <span class="material-icons-round">refresh</span>
-            Sync
+        <button class="nav-btn" onclick="App.sync()">
+            <span class="material-icons-round">sync</span>
         </button>
     </nav>
 
-    <!-- MODAL ADD/EDIT -->
-    <div id="modal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-top:0; color:white;">Pasajero</h3>
-            <form onsubmit="App.handleForm(event)">
-                <input type="hidden" id="orig-name">
-                <input type="text" id="inp-name" class="input-style" placeholder="Nombre" required autocomplete="off">
-                <input type="number" id="inp-price" class="input-style" placeholder="Precio ($)" step="0.5"
+    <!-- MODAL -->
+    <div id="modal" class="modal-layer">
+        <div class="modal-glass">
+            <h2 style="margin-top:0;">Pasajero</h2>
+            <form onsubmit="App.save(event)">
+                <input type="hidden" id="eid">
+                <input type="text" id="name" class="inp-clean" placeholder="Nombre" required autocomplete="off">
+                <input type="number" id="price" class="inp-clean" placeholder="Precio ($)" step="0.5"
                     inputmode="decimal" required>
 
-                <div class="modal-btns">
-                    <button type="button" id="btn-del" class="btn-mod btn-del-icon" onclick="App.deletePassenger()"
-                        style="display:none;">
+                <div class="btns-row">
+                    <button type="button" id="delBtn" class="btn-m btn-del" onclick="App.del()">
                         <span class="material-icons-round">delete</span>
                     </button>
-                    <button type="button" class="btn-mod btn-cancel" onclick="App.closeModal()">Cancelar</button>
-                    <button type="submit" class="btn-mod btn-save">Guardar</button>
+                    <button type="button" class="btn-m btn-can" onclick="App.close()">Cancelar</button>
+                    <button type="submit" class="btn-m btn-save">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast" class="toast-msg">Acción realizada</div>
+    <div id="toast" class="toast">Listo!</div>
 
-    <script src="app.js?v=5.0"></script>
-    <script>
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-    </script>
+    <script src="app.js?v=6.0"></script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
 </body>
 
 </html>

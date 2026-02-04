@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kopilot Inicio Atardecer Resplandeciente</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "peach": "#FFB38E",
+                        "soft-pink": "#FF9EAA",
+                        "pastel-purple": "#E2BCFF",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --sunset-glow: radial-gradient(circle at 50% 50%, #ffffff 0%, rgba(255, 255, 255, 0) 70%);
+        }
+        .sunset-bg {
+            background: linear-gradient(135deg, #FFB38E 0%, #FF9EAA 50%, #E2BCFF 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .sunset-bg::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%);
+            pointer-events: none;
+        }
+        .glass-button {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 50px 15px rgba(255, 255, 255, 0.4);
+        }
+        .logo-glow {
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display overflow-hidden">
+<div class="relative flex h-[100dvh] w-full flex-col sunset-bg items-center justify-between py-16 px-8">
+<div class="z-10 mt-12">
+<h1 class="text-white text-6xl font-extrabold tracking-tighter uppercase logo-glow">
+                KOPILOT
+            </h1>
+</div>
+<div class="relative flex flex-col items-center justify-center flex-1">
+<div class="absolute w-80 h-80 bg-white/20 rounded-full blur-[100px]"></div>
+<button class="glass-button relative flex h-56 w-56 items-center justify-center rounded-full transition-all duration-500 active:scale-95 group">
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-white text-[100px] font-light drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" style="font-variation-settings: 'FILL' 0, 'wght' 100, 'GRAD' 0, 'opsz' 48;">
+                        fingerprint
+                    </span>
+</div>
+</button>
+<p class="mt-8 text-white/90 font-semibold tracking-widest text-sm uppercase">
+                Toca para empezar
+            </p>
+</div>
+<div class="z-10 flex flex-col items-center gap-6">
+<div class="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">
+                    verified_user
+                </span>
+<p class="text-white text-xs font-bold tracking-widest uppercase">Seguridad Biométrica</p>
+</div>
+</div>
+<div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-64 h-64 bg-peach/30 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+
+</body></html>

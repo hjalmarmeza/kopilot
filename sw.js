@@ -1,9 +1,11 @@
-const CACHE = 'kopilot-circles-v5.0';
+const CACHE = 'kopilot-sunset-v6.0';
 const FILES = [
-    './index.html?v=5.0',
-    './style.css?v=5.0',
-    './app.js?v=5.0',
-    './manifest.json'
+    './index.html?v=6.0',
+    './style.css?v=6.0',
+    './app.js?v=6.0',
+    './manifest.json',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap',
+    'https://fonts.googleapis.com/icon?family=Material+Icons+Round'
 ];
 
 self.addEventListener('install', e => {

@@ -1,197 +1,185 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyz4FkiRpBQnYu4jRX4dudEy22TBnE2P0RmwX2vooFa2fIa2QPf0HLuo85bZkuplyNk/exec";
+const API = "https://script.google.com/macros/s/AKfycbyz4FkiRpBQnYu4jRX4dudEy22TBnE2P0RmwX2vooFa2fIa2QPf0HLuo85bZkuplyNk/exec";
 
 const App = {
-    passengers: [],
-    tripCounts: {},
-    recentTrips: [],
+    data: [],
+    counts: {},
+    logs: [],
 
     init: async () => {
-        console.log("Kopilot 5.0 Circles");
-        const cache = localStorage.getItem('kop_v5_data');
-        if (cache) {
-            const d = JSON.parse(cache);
-            App.passengers = d.p || [];
-            App.renderGrid();
+        console.log("Kopilot 6.0 Sunset");
+        const loc = localStorage.getItem('k6_data');
+        if (loc) {
+            const d = JSON.parse(loc);
+            App.data = d.p || [];
+            App.counts = d.c || {};
+            App.render();
         }
-        await App.refresh();
+        await App.sync();
     },
 
-    refresh: async () => {
-        const icon = document.querySelector('.nav-item:last-child span');
-        if (icon) icon.classList.add('spin');
+    sync: async () => {
+        const icon = document.querySelector('.nav-btn:last-child span');
+        if (icon) icon.innerText = 'cached';
 
         try {
-            const [cRes, sRes] = await Promise.all([
-                fetch(`${API_URL}?action=get_config`),
-                fetch(`${API_URL}?action=get_summary`)
+            const [cR, sR] = await Promise.all([
+                fetch(`${API}?action=get_config`),
+                fetch(`${API}?action=get_summary`)
             ]);
-            const conf = await cRes.json();
-            const sum = await sRes.json();
+            const c = await cR.json();
+            const s = await sR.json();
 
-            if (conf.status === 'success') App.passengers = conf.passengers;
+            if (c.status === 'success') App.data = c.passengers;
 
-            App.tripCounts = {};
-            App.recentTrips = [];
+            // Recalc Counts using fresh logs
+            App.counts = {};
+            App.logs = [];
             const now = new Date();
             const m = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-            if (sum.status === 'success') {
-                const rev = [...sum.trips].reverse();
-                App.recentTrips = rev; // Full history for log tab
-                sum.trips.forEach(t => {
-                    if (t.mesId === m) App.tripCounts[t.nombre] = (App.tripCounts[t.nombre] || 0) + 1;
+            if (s.status === 'success') {
+                App.logs = [...s.trips].reverse();
+                s.trips.forEach(t => {
+                    if (t.mesId === m) App.counts[t.nombre] = (App.counts[t.nombre] || 0) + 1;
                 });
             }
 
-            localStorage.setItem('kop_v5_data', JSON.stringify({ p: App.passengers }));
-            App.renderGrid();
-            App.renderLogs();
+            localStorage.setItem('k6_data', JSON.stringify({ p: App.data, c: App.counts }));
+            App.render();
 
-        } catch (e) { console.error(e); App.toast("Offline Mode"); }
-        finally { if (icon) icon.classList.remove('spin'); }
+        } catch (e) { App.msg("Offline"); }
+        finally { if (icon) icon.innerText = 'sync'; }
     },
 
-    renderGrid: () => {
-        const grid = document.getElementById('grid-container');
-        grid.innerHTML = '';
-        if (App.passengers.length === 0) {
-            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#555;">Sin pilotos</div>`;
-            return;
+    render: () => {
+        // GRID
+        const g = document.getElementById('grid');
+        g.innerHTML = '';
+        if (App.data.length === 0) {
+            g.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;">Usa el botón + para añadir</div>`;
+        } else {
+            App.data.forEach(p => {
+                const cnt = App.counts[p.nombre] || 0;
+                const init = p.nombre.charAt(0).toUpperCase();
+
+                const el = document.createElement('div');
+                el.className = 'glass-card';
+                el.onclick = (e) => {
+                    if (e.target.closest('.card-edit')) return;
+                    App.add(p.nombre, p.precio);
+                };
+                el.innerHTML = `
+                    <div class="card-count">${cnt}</div>
+                    <div class="card-edit" onclick="App.edit('${p.nombre}',${p.precio})">
+                        <span class="material-icons-round" style="font-size:18px">more_horiz</span>
+                    </div>
+                    <div class="card-initial">${init}</div>
+                    <div class="card-name">${p.nombre}</div>
+                `;
+                g.appendChild(el);
+            });
         }
 
-        App.passengers.forEach((p, i) => {
-            const count = App.tripCounts[p.nombre] || 0;
-            const init = p.nombre.charAt(0).toUpperCase();
-
-            // Random Color seeded by name length + index
-            const colorIdx = (p.nombre.length + i) % 12 + 1;
-            const colorVar = `var(--c${colorIdx})`;
-
-            const node = document.createElement('div');
-            node.className = 'passenger-node';
-
-            node.innerHTML = `
-                <div class="edit-badge" onclick="App.openEdit('${p.nombre}', ${p.precio})">
-                    <span class="material-icons-round" style="font-size:14px;">edit</span>
-                </div>
-                <div class="circle-btn" style="background:${colorVar};" onclick="App.addTrip('${p.nombre}', ${p.precio})">
-                    <span class="circle-initial">${init}</span>
-                    <span class="circle-count">${count}</span>
-                </div>
-                <div class="p-name">${p.nombre}</div>
-            `;
-            grid.appendChild(node);
-        });
-    },
-
-    renderLogs: () => {
-        const list = document.getElementById('log-list');
-        list.innerHTML = '';
-        if (App.recentTrips.length === 0) {
-            list.innerHTML = `<div class="empty-state">Bitácora vacía este mes</div>`;
-            return;
+        // LOGS
+        const l = document.getElementById('hist-list');
+        l.innerHTML = '';
+        if (App.logs.length === 0) {
+            l.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.7">Nada por hoy</div>`;
+        } else {
+            App.logs.forEach(x => {
+                const i = document.createElement('div');
+                i.className = 'log-row';
+                i.innerHTML = `<span>${x.nombre}</span><span class="log-time">${x.fecha || 'Hoy'}</span>`;
+                l.appendChild(i);
+            });
         }
-        App.recentTrips.forEach(t => {
-            const row = document.createElement('div');
-            row.className = 'log-item';
-            row.innerHTML = `<div class="log-name">${t.nombre}</div><div class="log-time">${t.fecha || 'Hoy'}</div>`;
-            list.appendChild(row);
-        });
     },
 
-    addTrip: async (name, price) => {
+    add: (n, p) => {
         if (navigator.vibrate) navigator.vibrate(50);
-        App.toast(`${name} +1`);
+        App.msg(`+1 ${n}`);
 
-        App.tripCounts[name] = (App.tripCounts[name] || 0) + 1;
-        // Fake Log
-        App.recentTrips.unshift({ nombre: name, fecha: 'Ahora' });
+        // Optimistic
+        App.counts[n] = (App.counts[n] || 0) + 1;
+        App.logs.unshift({ nombre: n, fecha: 'Ahora' });
+        App.render();
 
-        App.renderGrid();
-        App.renderLogs();
-
-        fetch(`${API_URL}?action=add_trip&nombre=${name}&precio=${price}`, { method: 'POST' });
+        fetch(`${API}?action=add_trip&nombre=${n}&precio=${p}`, { method: 'POST' });
     },
 
-    // UI ACTIONS
-    switchTab: (tab) => {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
+    // NAV
+    nav: (tab) => {
+        document.querySelectorAll('.tab-view').forEach(e => e.classList.remove('active'));
         document.getElementById(`tab-${tab}`).classList.add('active');
-        // Find nav button
-        const btns = document.querySelectorAll('.nav-item');
-        if (tab === 'pilots') btns[0].classList.add('active');
-        if (tab === 'logs') btns[1].classList.add('active');
+
+        document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+        if (tab === 'dash') document.querySelectorAll('.nav-btn')[0].classList.add('active');
+        if (tab === 'hist') document.querySelectorAll('.nav-btn')[1].classList.add('active');
     },
 
     // MODAL
-    openAddModal: () => {
-        document.getElementById('orig-name').value = '';
-        document.getElementById('inp-name').value = '';
-        document.getElementById('inp-price').value = '';
-        document.getElementById('btn-del').style.display = 'none';
+    openAdd: () => {
+        document.getElementById('eid').value = '';
+        document.getElementById('name').value = '';
+        document.getElementById('price').value = '';
+        document.getElementById('delBtn').style.display = 'none';
         document.getElementById('modal').classList.add('open');
-        setTimeout(() => document.getElementById('inp-name').focus(), 100);
+        setTimeout(() => document.getElementById('name').focus(), 100);
     },
-
-    openEdit: (n, p) => {
-        document.getElementById('orig-name').value = n;
-        document.getElementById('inp-name').value = n;
-        document.getElementById('inp-price').value = p;
-        document.getElementById('btn-del').style.display = 'flex';
+    edit: (n, p) => {
+        document.getElementById('eid').value = n;
+        document.getElementById('name').value = n;
+        document.getElementById('price').value = p;
+        document.getElementById('delBtn').style.display = 'flex';
         document.getElementById('modal').classList.add('open');
     },
-
-    closeModal: () => {
+    close: () => {
         document.getElementById('modal').classList.remove('open');
-        document.activeElement?.blur();
     },
 
-    handleForm: async (e) => {
+    save: async (e) => {
         e.preventDefault();
-        const orig = document.getElementById('orig-name').value;
-        const name = document.getElementById('inp-name').value;
-        const price = document.getElementById('inp-price').value;
-        App.closeModal();
-        App.toast("Guardando...");
+        const old = document.getElementById('eid').value;
+        const n = document.getElementById('name').value;
+        const p = document.getElementById('price').value;
+        App.close();
+        App.msg("Guardando...");
 
-        if (orig) {
-            const idx = App.passengers.findIndex(p => p.nombre === orig);
-            if (idx > -1) App.passengers[idx] = { nombre: name, precio: price, activo: true };
+        if (old) {
+            const ix = App.data.findIndex(x => x.nombre === old);
+            if (ix >= 0) App.data[ix] = { nombre: n, precio: p, activo: true };
         }
-        App.renderGrid();
+        App.render();
 
-        const act = orig ? 'edit_passenger' : 'add_passenger';
-        const p = new URLSearchParams({ action: act, nombre: name, precio: price, oldName: orig, newName: name, newPrice: price });
-        await fetch(`${API_URL}?${p.toString()}`, { method: 'POST' });
-        setTimeout(App.refresh, 500);
+        const act = old ? 'edit_passenger' : 'add_passenger';
+        const q = new URLSearchParams({ action: act, nombre: n, precio: p, oldName: old, newName: n, newPrice: p });
+        await fetch(`${API}?${q.toString()}`, { method: 'POST' });
+        App.sync();
     },
 
-    deletePassenger: async () => {
+    del: async () => {
         if (!confirm("¿Eliminar?")) return;
-        const n = document.getElementById('orig-name').value;
-        App.closeModal();
-        App.passengers = App.passengers.filter(p => p.nombre !== n);
-        App.renderGrid();
-        fetch(`${API_URL}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
+        const n = document.getElementById('eid').value;
+        App.close();
+
+        App.data = App.data.filter(x => x.nombre !== n);
+        App.render();
+
+        fetch(`${API}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
     },
 
-    confirmReset: async () => {
-        if (!confirm("¿Borrar historial?")) return;
-        App.recentTrips = [];
-        App.tripCounts = {};
-        App.renderGrid();
-        App.renderLogs();
-        App.toast("Historial Limpio");
-        fetch(`${API_URL}?action=reset_history`, { method: 'POST' });
+    confirmReset: () => {
+        if (!confirm("¿Reiniciar Bitácora?")) return;
+        App.logs = []; App.counts = {};
+        App.render();
+        fetch(`${API}?action=reset_history`, { method: 'POST' });
+        App.msg("Reiniciado");
     },
 
-    toast: (msg) => {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.add('vis');
-        setTimeout(() => t.classList.remove('vis'), 2000);
+    msg: (t) => {
+        const el = document.getElementById('toast');
+        el.innerText = t; el.classList.add('vis');
+        setTimeout(() => el.classList.remove('vis'), 2000);
     }
 };
 
