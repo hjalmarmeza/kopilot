@@ -118,9 +118,26 @@ body {
     display: none;
     flex: 1;
     flex-direction: column;
+    height: 100%;
+    /* Ensure full height */
+    overflow: hidden;
+    /* Hide main overflow, let inner scroll */
     padding: 24px;
-    padding-bottom: 100px;
+    padding-bottom: 0px;
     animation: slideUp 0.4s;
+}
+
+/* Make grid and history list scrollable */
+.grid,
+#history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 120px;
+    /* Space for Dock */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll on iOS */
+    padding-right: 4px;
+    /* Prevent scrollbar overlap */
 }
 
 .tab.active {
@@ -171,8 +188,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    overflow-y: auto;
-    padding-bottom: 100px;
+    /* Overflow handled in generic rule above */
 }
 
 .glass-card {
