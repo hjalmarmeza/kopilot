@@ -1,4 +1,4 @@
-const CACHE = 'kopilot-scroll-fix-v8.2';
+const CACHE = 'kopilot-server-fix-v8.3';
 const FILES = [
     './index.html?v=8.0',
     './style.css?v=8.2',
