@@ -1,4 +1,4 @@
-const CACHE_NAME = 'copiloto-v1';
+const CACHE_NAME = 'kopiloto-v1';
 const ASSETS = [
     './',
     './index.html',

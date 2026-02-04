@@ -5,14 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Copiloto</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <title>Kopilot</title>
+    <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#09090b">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,46 +21,81 @@
 
 <body>
 
-    <!-- Header -->
+    <!-- Header Glass -->
     <header class="app-header">
-        <h1>Copiloto 🚕</h1>
-        <div id="connection-status" class="status-indicator"></div>
+        <h1>Kopilot</h1>
+        <button class="add-p-btn" onclick="App.openAddModal()">
+            <span class="material-icons-round">add</span>
+        </button>
     </header>
 
-    <!-- Main Dashboard -->
-    <main id="dashboard" class="dashboard-grid">
-        <!-- JS inyectará los pasajeros aquí -->
-        <div class="loader">
-            <span class="material-icons-round spin">sync</span>
-            <p>Cargando pasajeros...</p>
+    <!-- Content -->
+    <main class="main-content">
+
+        <!-- Widgets Grid -->
+        <div id="passengers-grid" class="widgets-grid">
+            <!-- Loading State -->
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px;">
+                <span class="material-icons-round spin" style="font-size: 2rem;">sync</span>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="history-section">
+            <h3>Actividad Reciente</h3>
+            <div id="history-container">
+                <!-- Se llena con JS -->
+                <div style="text-align: center; opacity: 0.4; font-size: 0.9rem;">Sin viajes hoy</div>
+            </div>
         </div>
     </main>
 
-    <!-- Navigation -->
-    <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="App.showTab('dashboard')">
-            <span class="material-icons-round">directions_car</span>
-            <small>Viajes</small>
+    <!-- Bottom Nav (Floating Glass) -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="App.switchTab('home')">
+            <span class="material-icons-round">grid_view</span>
         </button>
-        <button class="nav-btn" onclick="App.showTab('summary')">
-            <span class="material-icons-round">receipt_long</span>
-            <small>Resumen</small>
-        </button>
-        <button class="nav-btn" onclick="App.refreshConfig()">
+        <button class="nav-item" onclick="App.refreshData()">
             <span class="material-icons-round">refresh</span>
-            <small>Actualizar</small>
         </button>
     </nav>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast hidden">Viaje registrado ✅</div>
+    <!-- Premium Modal (Bottom Sheet) -->
+    <div id="p-modal" class="modal">
+        <div class="modal-sheet">
+            <h2 style="margin-top:0; margin-bottom:24px;">Pasajero</h2>
+            <form onsubmit="App.handleForm(event)">
+                <input type="hidden" id="edit-orig-name">
+
+                <div class="input-group">
+                    <label class="input-label">Nombre</label>
+                    <input type="text" id="inp-name" class="premium-input" placeholder="Ej: Juan" required
+                        autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Precio ($)</label>
+                    <input type="number" id="inp-price" class="premium-input" placeholder="0.00" step="0.5"
+                        inputmode="decimal" required>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn-primary" style="background: #27272a; color: white;"
+                        onclick="App.closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Nofitication -->
+    <div id="toast" class="toast-premium">
+        <span class="material-icons-round" style="color: #4ade80;">check_circle</span>
+        <span id="toast-msg">Viaje registrado</span>
+    </div>
 
     <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
-        }
-    </script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
 </body>
 
 </html>

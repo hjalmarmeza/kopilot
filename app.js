@@ -2,189 +2,231 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyz4FkiRpBQnYu4jRX4dudE
 
 const App = {
     passengers: [],
+    tripCounts: {},
+    recentTrips: [],
 
     init: async () => {
-        console.log("RideTally Init...");
+        console.log("Kopilot 2.1 Init...");
         App.checkConnection();
 
-        // Cargar config local si existe para inicio rápido
-        const cachedConfig = localStorage.getItem('rt_passengers');
+        const cachedConfig = localStorage.getItem('kp_passengers');
         if (cachedConfig) {
             App.passengers = JSON.parse(cachedConfig);
             App.renderDashboard();
         }
-
-        // Refrescar desde la nube
-        await App.refreshConfig();
+        await App.refreshData();
     },
 
     checkConnection: () => {
         const indicator = document.getElementById('connection-status');
-        if (navigator.onLine) indicator.classList.add('online');
-
-        window.addEventListener('online', () => indicator.classList.add('online'));
-        window.addEventListener('offline', () => indicator.classList.remove('online'));
+        if (!indicator) return;
+        const updateStatus = () => {
+            indicator.classList.toggle('online', navigator.onLine);
+        };
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
     },
 
-    refreshConfig: async () => {
+    refreshData: async () => {
         try {
-            document.querySelector('.loader')?.style.setProperty('display', 'block');
-            const res = await fetch(`${API_URL}?action=get_config`);
-            const json = await res.json();
+            document.getElementById('loader')?.style.removeProperty('display');
 
-            if (json.status === 'success') {
-                App.passengers = json.passengers;
-                localStorage.setItem('rt_passengers', JSON.stringify(App.passengers));
-                App.renderDashboard();
-                App.showToast("Configuración actualizada");
+            const [configRes, summaryRes] = await Promise.all([
+                fetch(`${API_URL}?action=get_config`),
+                fetch(`${API_URL}?action=get_summary`)
+            ]);
+
+            const config = await configRes.json();
+            const summary = await summaryRes.json();
+
+            if (config.status === 'success') {
+                App.passengers = config.passengers;
+                localStorage.setItem('kp_passengers', JSON.stringify(App.passengers));
             }
+
+            // Procesar Conteos
+            App.tripCounts = {};
+            App.recentTrips = [];
+
+            if (summary.status === 'success') {
+                const now = new Date();
+                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+                const tripsReversed = [...summary.trips].reverse();
+                App.recentTrips = tripsReversed.slice(0, 5);
+
+                summary.trips.forEach(t => {
+                    if (t.mesId === currentMonth) {
+                        App.tripCounts[t.nombre] = (App.tripCounts[t.nombre] || 0) + 1;
+                    }
+                });
+            }
+
+            App.renderDashboard();
+            document.getElementById('loader')?.style.setProperty('display', 'none');
+
         } catch (e) {
-            console.error("Error fetching config", e);
-            App.showToast("Sin conexión: Usando datos locales", true);
+            console.error("Error refreshing data", e);
+            App.showToast("Maldita sea! Sin conexión.", true);
+            document.getElementById('loader')?.style.setProperty('display', 'none');
         }
     },
 
     renderDashboard: () => {
-        const grid = document.getElementById('dashboard');
+        const grid = document.getElementById('passengers-grid');
+        if (!grid) return;
         grid.innerHTML = '';
 
         if (App.passengers.length === 0) {
-            grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; opacity: 0.7;">No hay pasajeros configurados en el Sheet.</p>`;
+            grid.style.display = 'block';
+            grid.innerHTML = `<div style="text-align:center; padding:40px; color: #94a3b8;">
+                <span class="material-icons-round" style="font-size:3rem; margin-bottom:10px;">no_accounts</span>
+                <p>No tienes pasajeros.<br>Toca el + arriba.</p>
+            </div>`;
             return;
         }
+        grid.style.display = 'grid';
 
         App.passengers.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'passenger-card';
-            card.onclick = () => App.registerTrip(p);
+            const count = App.tripCounts[p.nombre] || 0;
+            const initial = p.nombre.charAt(0).toUpperCase();
 
-            // Inicial o Emoji
-            const avatar = p.nombre.charAt(0).toUpperCase();
+            const card = document.createElement('div');
+            card.className = 'widget-card';
+
+            // Acción principal al tocar la tarjeta: Registrar Viaje
+            card.onclick = (e) => {
+                // Si tocó el botón de editar, no registrar viaje
+                if (e.target.closest('.w-edit-btn')) return;
+                App.registerTrip(p.nombre, p.precio);
+            };
 
             card.innerHTML = `
-                <div class="p-avatar">👤</div>
-                <div class="p-name">${p.nombre}</div>
-                <div class="p-price">$${p.precio}</div>
+                <div class="w-edit-btn" onclick="App.openEditModal('${p.nombre}', ${p.precio})">
+                    <span class="material-icons-round">edit</span>
+                </div>
+                <div class="w-icon-bg">${initial}</div>
+                <div class="w-name">${p.nombre}</div>
+                <div class="w-stat">
+                    <span class="material-icons-round" style="font-size:1rem;">history</span>
+                    ${count}
+                </div>
             `;
             grid.appendChild(card);
         });
+
+        // Render History
+        const hist = document.getElementById('history-container');
+        if (hist) {
+            hist.innerHTML = '';
+            if (App.recentTrips.length > 0) {
+                App.recentTrips.forEach(t => {
+                    const row = document.createElement('div');
+                    row.className = 'history-pill';
+                    row.innerHTML = `
+                        <div style="font-weight:600;">${t.nombre}</div>
+                        <div style="font-size:0.8rem; opacity:0.6;">${t.fecha || 'Reciente'}</div>
+                    `;
+                    hist.appendChild(row);
+                });
+            } else {
+                hist.innerHTML = '<div style="text-align: center; opacity: 0.4; font-size: 0.9rem;">Sin viajes hoy</div>';
+            }
+        }
     },
 
-    registerTrip: async (passenger) => {
-        // Feedback Inmediato (Optimistic UI)
-        App.showToast(`Registrando viaje de ${passenger.nombre}...`);
-
-        if (navigator.vibrate) navigator.vibrate(50); // Vibración táctil
+    registerTrip: async (nombre, precio) => {
+        App.showToast(`Anotando a ${nombre}...`);
+        if (navigator.vibrate) navigator.vibrate(50);
 
         try {
-            // Enviar a Google Sheets
-            // Usamos mode: 'no-cors' si hay problemas, pero el script devuelve JSONP/CORS headers usualmente.
-            // Google Apps Script a veces requiere redirección, fetch la sigue por defecto.
-
-            const params = new URLSearchParams({
-                action: 'add_trip',
-                nombre: passenger.nombre,
-                precio: passenger.precio
-            });
-
+            const params = new URLSearchParams({ action: 'add_trip', nombre, precio });
             await fetch(`${API_URL}?${params.toString()}`, { method: 'POST' });
 
-            App.showToast(`¡Viaje de ${passenger.nombre} guardado! ✅`);
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            App.showToast(`Viaje guardado! ✅`);
+
+            // Fake update local history
+            const historyContainer = document.getElementById('recent-history');
+            if (historyContainer) {
+                const row = document.createElement('div');
+                row.className = 'history-item fade-in';
+                row.innerHTML = `<span class="h-name">${nombre}</span><span class="h-date">Ahora</span>`;
+                historyContainer.prepend(row);
+            }
+            // Update counter locally
+            App.tripCounts[nombre] = (App.tripCounts[nombre] || 0) + 1;
+            App.renderDashboard();
 
         } catch (e) {
             console.error(e);
-            App.showToast("Error de conexión. Intenta luego.", true);
-            // TODO: Podríamos guardar en localstorage y reintentar luego (Queue)
+            App.showToast("Error. No se guardó.", true);
+        }
+    },
+
+    // --- MODAL LOGIC ---
+    openAddModal: () => {
+        document.getElementById('modal-title').innerText = "Nuevo Pasajero";
+        document.getElementById('edit-original-name').value = ""; // Empty = New
+        document.getElementById('p-name-input').value = "";
+        document.getElementById('p-price-input').value = "";
+        document.getElementById('passenger-modal').classList.remove('hidden');
+    },
+
+    openEditModal: (name, price) => {
+        document.getElementById('modal-title').innerText = "Editar Pasajero";
+        document.getElementById('edit-original-name').value = name;
+        document.getElementById('p-name-input').value = name;
+        document.getElementById('p-price-input').value = price;
+        document.getElementById('passenger-modal').classList.remove('hidden');
+    },
+
+    closeModal: () => {
+        document.getElementById('passenger-modal').classList.add('hidden');
+    },
+
+    handlePassengerSubmit: async (e) => {
+        e.preventDefault();
+        const originalName = document.getElementById('edit-original-name').value;
+        const name = document.getElementById('p-name-input').value;
+        const price = document.getElementById('p-price-input').value;
+
+        App.closeModal();
+        App.showToast("Guardando cambios...");
+
+        const action = originalName ? 'edit_passenger' : 'add_passenger';
+        const params = new URLSearchParams({
+            action: action,
+            nombre: name, // For add
+            precio: price,
+            oldName: originalName, // For edit
+            newName: name, // For edit
+            newPrice: price
+        });
+
+        try {
+            await fetch(`${API_URL}?${params.toString()}`, { method: 'POST' });
+            App.showToast("Listo! Actualizando...");
+            await App.refreshData(); // Reload list
+        } catch (err) {
+            App.showToast("Error al guardar config.", true);
         }
     },
 
     showTab: (tabName) => {
-        // Simple navegación SPA
-        const dash = document.getElementById('dashboard');
-
-        // Actualizar botones
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+        document.getElementById(tabName).classList.remove('hidden');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
-        if (tabName === 'dashboard') {
-            dash.innerHTML = ''; // Limpiar para SPA simple o re-render
-            App.renderDashboard();
-            document.querySelector('.nav-btn[onclick*="dashboard"]').classList.add('active');
-        } else if (tabName === 'summary') {
-            dash.innerHTML = '<div class="loader"><span class="material-icons-round spin">sync</span><p>Calculando totales...</p></div>';
-            App.loadSummary(dash);
-            document.querySelector('.nav-btn[onclick*="summary"]').classList.add('active');
-        }
-    },
-
-    loadSummary: async (container) => {
-        try {
-            const res = await fetch(`${API_URL}?action=get_summary`);
-            const json = await res.json();
-
-            if (json.status === 'success') {
-                container.innerHTML = `<h2 style="grid-column:1/-1; margin-bottom:10px;">Resumen Mes Actual</h2>`;
-
-                // Agrupar por persona
-                const totals = {};
-                const now = new Date();
-                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-                json.trips.forEach(t => {
-                    // Filtrar solo mes actual (opcional, aquí lo hacemos simple)
-                    // El servidor devuelve mesId "YYYY-MM"
-                    if (t.mesId === currentMonth) {
-                        if (!totals[t.nombre]) totals[t.nombre] = { count: 0, amount: 0 };
-                        totals[t.nombre].count++;
-                        totals[t.nombre].amount += parseFloat(t.precio);
-                    }
-                });
-
-                if (Object.keys(totals).length === 0) {
-                    container.innerHTML += `<p style="grid-column:1/-1; opacity:0.6;">Sin viajes este mes.</p>`;
-                    return;
-                }
-
-                Object.keys(totals).forEach(name => {
-                    const data = totals[name];
-                    const div = document.createElement('div');
-                    div.style.gridColumn = "1 / -1";
-                    div.className = 'summary-card';
-                    div.innerHTML = `
-                        <div>
-                            <strong>${name}</strong>
-                            <div style="font-size:0.9rem; opacity:0.7;">${data.count} viajes</div>
-                        </div>
-                        <div class="total-amount">$${data.amount.toFixed(2)}</div>
-                    `;
-
-                    // Botón de WhatsApp
-                    const msg = `Hola ${name}, este mes de ${currentMonth} realizaste ${data.count} viajes. El total es $${data.amount.toFixed(2)}. ¡Gracias! 🚕`;
-                    const waLink = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-
-                    const btn = document.createElement('a');
-                    btn.href = waLink;
-                    btn.target = "_blank";
-                    btn.innerHTML = '💬 Cobrar';
-                    btn.style.cssText = "display:block; padding:8px; margin-left:10px; background:#25D366; color:white; border-radius:10px; text-decoration:none; font-size:0.8rem; font-weight:bold;";
-
-                    div.appendChild(btn);
-                    container.appendChild(div);
-                });
-
-            }
-        } catch (e) {
-            console.error(e);
-            container.innerHTML = `<p style="color:red;">Error cargando resumen.</p>`;
-        }
+        document.querySelector(`.nav-btn[onclick*="${tabName}"]`).classList.add('active');
+        if (tabName === 'dashboard') App.refreshData();
     },
 
     showToast: (msg, isError = false) => {
         const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.style.backgroundColor = isError ? 'var(--danger)' : 'var(--success)';
-        t.classList.remove('hidden');
-        setTimeout(() => t.classList.add('hidden'), 3000);
+        t.innerText = msg;
+        t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
     }
 };
 

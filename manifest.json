@@ -1,6 +1,6 @@
 {
-    "name": "Copiloto",
-    "short_name": "Copiloto",
+    "name": "Kopilot",
+    "short_name": "Kopilot",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#111827",
