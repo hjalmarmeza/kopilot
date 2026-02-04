@@ -5,88 +5,105 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kopilot Sunset</title>
-    <!-- CSS v6.0 -->
-    <link rel="stylesheet" href="style.css?v=6.0">
+    <title>Kopilot</title>
+    <!-- CSS v7.0 -->
+    <link rel="stylesheet" href="style.css?v=7.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF9EAA">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <!-- FONTS: Inter & Material -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
 
 <body>
 
-    <!-- TAB 1: DASHBOARD -->
-    <div id="tab-dash" class="tab-view active">
-        <header class="header">
-            <h1 class="logo-text">Kopilot</h1>
-            <button class="action-icon" onclick="App.openAdd()">
-                <span class="material-icons-round">add</span>
-            </button>
-        </header>
+    <!-- SCREEN 1: WELCOME INTRO -->
+    <div id="intro-screen">
+        <div class="intro-logo">KOPILOT</div>
 
-        <div id="grid" class="grid-container">
-            <div style="grid-column:1/-1; text-align:center; padding:60px; color:white; opacity:0.8;">
-                <span class="material-icons-round spin" style="font-size:30px;">sync</span>
+        <div class="fingerprint-btn" onclick="App.start()">
+            <span class="material-icons-round fingerprint-icon">fingerprint</span>
+        </div>
+
+        <div class="start-text">Toca para iniciar</div>
+    </div>
+
+    <!-- MAIN APP CONTENT (Hidden initially) -->
+    <div id="app-content">
+
+        <!-- TAB 1: PASSENGERS -->
+        <div id="tab-passengers" class="tab active">
+            <header class="header">
+                <h1 class="h-title">Pilotos</h1>
+                <div class="add-btn" onclick="App.openAdd()">
+                    <span class="material-icons-round">add</span>
+                </div>
+            </header>
+
+            <div id="grid" class="grid">
+                <!-- Cards -->
+                <div style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.6;">Cargando...</div>
             </div>
         </div>
-    </div>
 
-    <!-- TAB 2: HISTORY -->
-    <div id="tab-hist" class="tab-view">
-        <header class="header">
-            <h1 class="logo-text" style="font-size: 2rem;">Bitácora</h1>
-            <button class="action-icon" onclick="App.confirmReset()"
-                style="color: #ff3b30; background: rgba(255,255,255,0.8);">
-                <span class="material-icons-round">delete_sweep</span>
-            </button>
-        </header>
+        <!-- TAB 2: HISTORY -->
+        <div id="tab-history" class="tab">
+            <header class="header">
+                <h1 class="h-title">Bitácora</h1>
+                <div class="add-btn" onclick="App.resetHistory()"
+                    style="background:rgba(255,255,255,0.8); color:#ff3b30;">
+                    <span class="material-icons-round">delete_sweep</span>
+                </div>
+            </header>
 
-        <div id="hist-list">
-            <!-- Items -->
+            <div id="history-list">
+                <!-- Logs -->
+            </div>
         </div>
+
+        <!-- DOCK NAVIGATION -->
+        <nav class="dock">
+            <button class="dock-btn active" onclick="App.nav('passengers')">
+                <span class="material-icons-round dock-icon">grid_view</span>
+                Home
+            </button>
+            <button class="dock-btn" onclick="App.nav('history')">
+                <span class="material-icons-round dock-icon">history</span>
+                Logs
+            </button>
+            <button class="dock-btn" onclick="App.sync()">
+                <span class="material-icons-round dock-icon">sync</span>
+                Sync
+            </button>
+        </nav>
+
     </div>
 
-    <!-- NAV DOCK -->
-    <nav class="nav-dock">
-        <button class="nav-btn active" onclick="App.nav('dash')">
-            <span class="material-icons-round">fingerprint</span>
-        </button>
-        <button class="nav-btn" onclick="App.nav('hist')">
-            <span class="material-icons-round">history</span>
-        </button>
-        <button class="nav-btn" onclick="App.sync()">
-            <span class="material-icons-round">sync</span>
-        </button>
-    </nav>
-
-    <!-- MODAL -->
-    <div id="modal" class="modal-layer">
-        <div class="modal-glass">
-            <h2 style="margin-top:0;">Pasajero</h2>
+    <!-- HIDDEN MODAL -->
+    <div id="modal" class="modal">
+        <div class="modal-box">
+            <h2 style="margin-top:0;">Editar</h2>
             <form onsubmit="App.save(event)">
                 <input type="hidden" id="eid">
-                <input type="text" id="name" class="inp-clean" placeholder="Nombre" required autocomplete="off">
-                <input type="number" id="price" class="inp-clean" placeholder="Precio ($)" step="0.5"
-                    inputmode="decimal" required>
+                <input type="text" id="name" class="inp" placeholder="Nombre" required autocomplete="off">
+                <input type="number" id="price" class="inp" placeholder="Precio" step="0.5" inputmode="decimal"
+                    required>
 
-                <div class="btns-row">
-                    <button type="button" id="delBtn" class="btn-m btn-del" onclick="App.del()">
+                <div class="btns">
+                    <button type="button" id="delBtn" class="btn btn-del" onclick="App.del()">
                         <span class="material-icons-round">delete</span>
                     </button>
-                    <button type="button" class="btn-m btn-can" onclick="App.close()">Cancelar</button>
-                    <button type="submit" class="btn-m btn-save">Guardar</button>
+                    <button type="button" class="btn btn-sec" onclick="App.close()">Cancelar</button>
+                    <button type="submit" class="btn btn-pry">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast" class="toast">Listo!</div>
+    <div id="toast">Acción completada</div>
 
-    <script src="app.js?v=6.0"></script>
+    <script src="app.js?v=7.0"></script>
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
 </body>
 

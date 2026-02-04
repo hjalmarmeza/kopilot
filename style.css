@@ -1,17 +1,10 @@
 :root {
-    /* SUNSET PALETTE */
     --c-peach: #FFB38E;
     --c-pink: #FF9EAA;
     --c-purple: #E2BCFF;
-
-    --bg-grad: linear-gradient(135deg, var(--c-peach) 0%, var(--c-pink) 50%, var(--c-purple) 100%);
-
-    --glass-bg: rgba(255, 255, 255, 0.25);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-shadow: 0 8px 32px 0 rgba(76, 76, 131, 0.15);
-
-    --text-white: #ffffff;
-    --text-glass: rgba(255, 255, 255, 0.9);
+    --grad: linear-gradient(135deg, #FFB38E 0%, #FF9EAA 50%, #E2BCFF 100%);
+    --glass: rgba(255, 255, 255, 0.25);
+    --border: rgba(255, 255, 255, 0.4);
 }
 
 * {
@@ -21,199 +14,249 @@
 }
 
 body {
-    background: var(--bg-grad);
+    background: var(--grad);
     background-size: 200% 200%;
-    animation: gradientMove 10s ease infinite;
-    color: var(--text-white);
+    animation: bgAnim 10s ease infinite;
+    color: white;
     font-family: 'Inter', sans-serif;
     margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
-@keyframes gradientMove {
+@keyframes bgAnim {
     0% {
-        background-position: 0% 50%;
+        background-position: 0% 50%
     }
 
     50% {
-        background-position: 100% 50%;
+        background-position: 100% 50%
     }
 
     100% {
-        background-position: 0% 50%;
+        background-position: 0% 50%
     }
+}
+
+/* --- SCREEN 1: WELCOME --- */
+#intro-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--grad);
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+#intro-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.1);
+}
+
+.intro-logo {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 60px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.fingerprint-btn {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.fingerprint-btn:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.fingerprint-icon {
+    font-size: 80px !important;
+    opacity: 0.9;
+}
+
+.start-text {
+    margin-top: 40px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+}
+
+/* --- SCREEN 2: APP CONTENT --- */
+#app-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.8s;
+    pointer-events: none;
+}
+
+#app-content.visible {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* TABS */
-.tab-view {
-    flex: 1;
+.tab {
     display: none;
+    flex: 1;
     flex-direction: column;
     padding: 24px;
-    padding-bottom: 120px;
-    animation: fadeIn 0.4s ease-out;
+    padding-bottom: 100px;
+    animation: slideUp 0.4s;
 }
 
-.tab-view.active {
+.tab.active {
     display: flex;
 }
 
-@keyframes fadeIn {
+@keyframes slideUp {
     from {
-        opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
+        opacity: 0
     }
 
     to {
-        opacity: 1;
         transform: translateY(0);
+        opacity: 1
     }
 }
 
 /* HEADER */
 .header {
-    margin-top: 20px;
-    margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
-.logo-text {
-    font-size: 2.5rem;
+.h-title {
+    font-size: 2rem;
     font-weight: 800;
-    letter-spacing: -1px;
-    text-transform: uppercase;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
     margin: 0;
 }
 
-.action-icon {
+.add-btn {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
-    cursor: pointer;
-    transition: transform 0.2s;
 }
 
-.action-icon:active {
-    transform: scale(0.9);
-    background: rgba(255, 255, 255, 0.4);
-}
-
-/* GRID */
-.grid-container {
+/* CARDS GRID */
+.grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    overflow-y: auto;
+    padding-bottom: 100px;
 }
 
-/* PASSENGER CARD (Replica of Glass Button) */
 .glass-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 30px;
-    aspect-ratio: 1/1.1;
+    aspect-ratio: 1/1.2;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow: var(--glass-shadow);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .glass-card:active {
-    transform: scale(0.95);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.25);
 }
 
-.card-initial {
-    font-size: 4rem;
+.c-init {
+    font-size: 3.5rem;
     font-weight: 200;
     opacity: 0.8;
-    margin-bottom: 10px;
 }
 
-.card-name {
+.c-name {
     font-size: 1.1rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    opacity: 0.9;
+    margin-top: 10px;
 }
 
-.card-count {
+.c-badge {
     position: absolute;
-    top: 15px;
-    left: 15px;
+    top: 12px;
+    left: 12px;
     background: white;
     color: #FF9EAA;
     font-weight: 800;
-    font-size: 0.9rem;
     padding: 4px 10px;
     border-radius: 20px;
+    font-size: 0.8rem;
 }
 
-.card-edit {
+.c-menu {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 10px;
+    top: 8px;
+    right: 8px;
+    padding: 8px;
     opacity: 0.6;
 }
 
-/* LOGS LIST */
-.log-row {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+/* LOGS */
+.log-item {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 16px;
+    border-radius: 16px;
     margin-bottom: 10px;
-    padding: 15px 20px;
-    border-radius: 20px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    backdrop-filter: blur(10px);
 }
 
-.log-time {
-    font-size: 0.85rem;
-    opacity: 0.8;
-}
-
-/* BOTTOM NAV */
-.nav-dock {
+/* DOCK */
+.dock {
     position: fixed;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(25px);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(20px);
     border-radius: 40px;
     padding: 5px;
     display: flex;
     gap: 5px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    z-index: 100;
 }
 
-.nav-btn {
+.dock-btn {
     width: 60px;
     height: 60px;
-    border-radius: 35px;
+    border-radius: 30px;
     border: none;
     background: transparent;
     color: white;
@@ -223,87 +266,79 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 10px;
-    font-weight: 600;
-    gap: 2px;
+    font-weight: 700;
 }
 
-.nav-btn span {
-    font-size: 28px;
-}
-
-.nav-btn.active {
+.dock-btn.active {
     background: white;
-    color: var(--c-pink);
+    color: #FF9EAA;
     opacity: 1;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
+.dock-icon {
+    font-size: 28px;
+    margin-bottom: 2px;
+}
+
 /* MODAL */
-.modal-layer {
+.modal {
     position: fixed;
     inset: 0;
-    z-index: 200;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(5px);
+    z-index: 600;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s;
+    transition: 0.3s;
 }
 
-.modal-layer.open {
+.modal.open {
     opacity: 1;
     pointer-events: auto;
 }
 
-.modal-glass {
-    background: rgba(255, 255, 255, 0.85);
+.modal-box {
+    background: white;
     width: 85%;
-    max-width: 340px;
-    border-radius: 30px;
+    max-width: 320px;
     padding: 30px;
-    text-align: center;
+    border-radius: 30px;
     color: #333;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
 
-.inp-clean {
+.inp {
     width: 100%;
     padding: 15px;
     margin-bottom: 15px;
-    background: white;
-    border: none;
+    border: 1px solid #ddd;
     border-radius: 15px;
     font-size: 1rem;
-    color: #333;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.btns-row {
+.btns {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
 }
 
-.btn-m {
+.btn {
     flex: 1;
     padding: 15px;
     border-radius: 15px;
     border: none;
     font-weight: 700;
-    font-size: 1rem;
 }
 
-.btn-save {
-    background: var(--c-pink);
+.btn-pry {
+    background: #FF9EAA;
     color: white;
-    background-image: linear-gradient(135deg, #FF9EAA, #FFB38E);
 }
 
-.btn-can {
-    background: #eee;
+.btn-sec {
+    background: #f0f0f0;
     color: #666;
 }
 
@@ -317,25 +352,23 @@ body {
     align-items: center;
 }
 
-/* Toast */
-.toast {
+#toast {
     position: fixed;
     top: 100px;
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    color: var(--c-pink);
-    font-weight: 700;
-    padding: 12px 30px;
+    color: #FF9EAA;
+    padding: 10px 25px;
     border-radius: 50px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    font-weight: 700;
     opacity: 0;
-    transition: 0.3s;
     pointer-events: none;
-    z-index: 300;
+    transition: 0.3s;
+    z-index: 700;
 }
 
-.toast.vis {
+#toast.vis {
     opacity: 1;
-    top: 50px;
+    top: 60px;
 }
