@@ -1,8 +1,8 @@
-const CACHE = 'kopilot-v8.0-final';
+const CACHE = 'kopilot-fix-date-v8.1';
 const FILES = [
     './index.html?v=8.0',
     './style.css?v=8.0',
-    './app.js?v=8.0',
+    './app.js?v=8.1',
     './manifest.json',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap',
     'https://fonts.googleapis.com/icon?family=Material+Icons+Round'

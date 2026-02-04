@@ -6,15 +6,14 @@ const App = {
     logs: [],
 
     init: () => {
-        console.log("Kopilot 7.0 Sunset Flow");
-        const c = localStorage.getItem('k7_data');
+        console.log("Kopilot 8.1 Date Fix");
+        const c = localStorage.getItem('k8.1_data');
         if (c) {
             const d = JSON.parse(c);
             App.data = d.p || [];
             App.counts = d.c || {};
             App.render();
         }
-        // Auto-load in bg
         App.sync();
     },
 
@@ -28,7 +27,7 @@ const App = {
 
     sync: async () => {
         const i = document.querySelector('.dock-btn:last-child span');
-        if (i) i.classList.add('spin'); // Add CSS spin if needed or change icon
+        if (i) i.classList.add('spin');
 
         try {
             const [cR, sR] = await Promise.all([
@@ -52,7 +51,7 @@ const App = {
                 });
             }
 
-            localStorage.setItem('k7_data', JSON.stringify({ p: App.data, c: App.counts }));
+            localStorage.setItem('k8.1_data', JSON.stringify({ p: App.data, c: App.counts }));
             App.render();
 
         } catch (e) { App.msg("Offline Mode"); }
@@ -64,7 +63,7 @@ const App = {
         const g = document.getElementById('grid');
         g.innerHTML = '';
         if (App.data.length === 0) {
-            g.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:white;opacity:0.7;">Sin Pilotos</div>`;
+            g.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:white;opacity:0.7;">Sin Pasajeros</div>`;
         } else {
             App.data.forEach(p => {
                 const cnt = App.counts[p.nombre] || 0;
@@ -97,19 +96,76 @@ const App = {
             App.logs.forEach(x => {
                 const r = document.createElement('div');
                 r.className = 'log-item';
-                r.innerHTML = `<span>${x.nombre}</span><span style="opacity:0.7;font-size:0.9rem;">${x.fecha || 'Hoy'}</span>`;
+
+                // --- LOGIC for Date/Time Display ---
+                let displayTime = "";
+                let displayDate = "";
+
+                // 1. Process Time
+                if (x.time) {
+                    const t = new Date(x.time); // Try parsing as ISODate first
+                    if (!isNaN(t.getTime())) {
+                        displayTime = `${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`;
+                    } else {
+                        displayTime = x.time; // Use raw string if simpler format
+                    }
+                }
+
+                // 2. Process Date
+                if (x.date) {
+                    const d = new Date(x.date);
+                    if (!isNaN(d.getTime())) { // Valid date obj
+                        displayDate = `${d.getDate()}/${d.getMonth() + 1}`;
+                        // If time was missing, try getting from main timestamp
+                        if (!displayTime && d.getHours()) {
+                            displayTime = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                        }
+                    } else {
+                        // Raw string fallback
+                        displayDate = String(x.date).substring(0, 10);
+                    }
+                }
+
+                // Final string
+                let fullStr = displayTime || '--:--';
+                if (displayDate) fullStr += ` · ${displayDate}`;
+
+                r.innerHTML = `
+                    <div class="log-info">
+                        <span style="font-weight:600">${x.nombre}</span>
+                        <span class="log-date">${fullStr}</span>
+                    </div>
+                    <button class="log-del" onclick="App.delLog('${x.id}', '${x.nombre}')">
+                        <span class="material-icons-round" style="font-size:18px">close</span>
+                    </button>
+                `;
                 h.appendChild(r);
             });
         }
     },
 
-    add: (n, p) => {
+    add: async (n, p) => {
         if (navigator.vibrate) navigator.vibrate(50);
         App.msg(`+1 ${n}`);
         App.counts[n] = (App.counts[n] || 0) + 1;
-        App.logs.unshift({ nombre: n, fecha: 'Ahora' });
+
+        const now = new Date();
+        const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        // Add current date for immediate display
+        App.logs.unshift({ nombre: n, time: time, date: now.toISOString(), id: 'temp-' + Date.now() });
+
         App.render();
-        fetch(`${API}?action=add_trip&nombre=${n}&precio=${p}`, { method: 'POST' });
+        await fetch(`${API}?action=add_trip&nombre=${n}&precio=${p}`, { method: 'POST' });
+        App.sync();
+    },
+
+    delLog: async (id, name) => {
+        if (!confirm("¿Borrar este viaje?")) return;
+        App.logs = App.logs.filter(x => x.id != id);
+        if (App.counts[name] > 0) App.counts[name]--;
+        App.render();
+        App.msg("Borrando...");
+        if (!id.startsWith('temp')) await fetch(`${API}?action=delete_trip&id=${id}`, { method: 'POST' });
     },
 
     nav: (tab) => {
