@@ -9,11 +9,11 @@
     <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
-    <meta name="theme-color" content="#09090b">
+    <meta name="theme-color" content="#0f172a">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,74 +23,67 @@
 
     <!-- Header Glass -->
     <header class="app-header">
-        <h1>Kopilot</h1>
-        <button class="add-p-btn" onclick="App.openAddModal()">
+        <div class="logo">
+            <h1>Kopilot</h1>
+            <span>Smart Drive</span>
+        </div>
+        <button class="add-btn-header" onclick="App.openAddModal()">
             <span class="material-icons-round">add</span>
         </button>
     </header>
 
     <!-- Content -->
-    <main class="main-content">
+    <main class="main-scroll">
 
         <!-- Widgets Grid -->
         <div id="passengers-grid" class="widgets-grid">
-            <!-- Loading State -->
-            <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px;">
+            <!-- Loader -->
+            <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.3); padding: 50px;">
                 <span class="material-icons-round spin" style="font-size: 2rem;">sync</span>
             </div>
         </div>
 
         <!-- History -->
         <div class="history-section">
-            <h3>Actividad Reciente</h3>
+            <h3>Bitácora</h3>
             <div id="history-container">
-                <!-- Se llena con JS -->
-                <div style="text-align: center; opacity: 0.4; font-size: 0.9rem;">Sin viajes hoy</div>
             </div>
         </div>
     </main>
 
-    <!-- Bottom Nav (Floating Glass) -->
-    <nav class="nav-bar">
-        <button class="nav-item active" onclick="App.switchTab('home')">
+    <!-- Bottom Nav (Floating Pill) -->
+    <nav class="floating-nav">
+        <button class="nav-pill active" onclick="App.switchTab('home')">
             <span class="material-icons-round">grid_view</span>
         </button>
-        <button class="nav-item" onclick="App.refreshData()">
+        <button class="nav-pill" onclick="App.refreshData()">
             <span class="material-icons-round">refresh</span>
         </button>
     </nav>
 
     <!-- Premium Modal (Bottom Sheet) -->
     <div id="p-modal" class="modal">
-        <div class="modal-sheet">
-            <h2 style="margin-top:0; margin-bottom:24px;">Pasajero</h2>
+        <div class="modal-card">
+            <h2 style="margin-top:0; margin-bottom:24px; font-size: 1.5rem;">Pasajero</h2>
             <form onsubmit="App.handleForm(event)">
                 <input type="hidden" id="edit-orig-name">
-
-                <div class="input-group">
-                    <label class="input-label">Nombre</label>
-                    <input type="text" id="inp-name" class="premium-input" placeholder="Ej: Juan" required
-                        autocomplete="off">
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">Precio ($)</label>
-                    <input type="number" id="inp-price" class="premium-input" placeholder="0.00" step="0.5"
-                        inputmode="decimal" required>
-                </div>
+                <input type="text" id="inp-name" class="input-field" placeholder="Nombre" required autocomplete="off">
+                <input type="number" id="inp-price" class="input-field" placeholder="Precio ($)" step="0.5"
+                    inputmode="decimal" required>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn-primary" style="background: #27272a; color: white;"
+                    <button type="button" class="action-btn"
+                        style="background: transparent; color: white; border:1px solid rgba(255,255,255,0.2);"
                         onclick="App.closeModal()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="submit" class="action-btn">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Toast Nofitication -->
-    <div id="toast" class="toast-premium">
-        <span class="material-icons-round" style="color: #4ade80;">check_circle</span>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-bar">
+        <span class="material-icons-round t-icon">check_circle</span>
         <span id="toast-msg">Viaje registrado</span>
     </div>
 
