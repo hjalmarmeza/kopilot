@@ -1,20 +1,20 @@
 const API = "https://script.google.com/macros/s/AKfycbyz4FkiRpBQnYu4jRX4dudEy22TBnE2P0RmwX2vooFa2fIa2QPf0HLuo85bZkuplyNk/exec";
 
 const App = {
-    data: [],    // Passenger Config
-    counts: {},  // Server Confirmed Counts
+    data: [],    // Config Pasajeros
+    counts: {},  // Server Counts
+    localCounts: {}, // Local Truth (Persistent)
     logs: [],    // Server Logs
-    pending: [], // Local unsynced trips
+    pending: [], // Queue
 
     init: () => {
-        console.log("Kopilot 9.0 Optimistic Merge");
-        const c = localStorage.getItem('k9_data');
+        console.log("Kopilot 9.1 Bulletproof");
+        const c = localStorage.getItem('k9.1_data');
         if (c) {
             const d = JSON.parse(c);
             App.data = d.p || [];
             App.counts = d.c || {};
-            // If we had pending trips from previous session try to resend? 
-            // For simplicity in v1, we start clean pending, but keep counts high
+            App.localCounts = d.lc || {};
         }
         App.render();
         App.sync();
@@ -28,7 +28,6 @@ const App = {
         }, 300);
     },
 
-    // --- SMART SYNC ---
     sync: async () => {
         const i = document.querySelector('.dock-btn:last-child span');
         if (i) i.classList.add('spin');
@@ -43,56 +42,47 @@ const App = {
 
             if (conf.status === 'success') App.data = conf.passengers;
 
-            // Recalculate Base Server Counts
-            const serverCounts = {};
-            const serverLogs = [];
-
+            // Server truth
+            const sCounts = {};
+            const sLogs = [];
             const now = new Date();
             const m = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
             if (sum.status === 'success') {
-                // Reverse to have newest first
-                serverLogs.push(...[...sum.trips].reverse());
-
+                sLogs.push(...[...sum.trips].reverse());
                 sum.trips.forEach(t => {
-                    if (t.mesId === m) serverCounts[t.nombre] = (serverCounts[t.nombre] || 0) + 1;
+                    if (t.mesId === m) sCounts[t.nombre] = (sCounts[t.nombre] || 0) + 1;
                 });
             }
 
-            // Update App State
-            App.counts = serverCounts;
-            App.logs = serverLogs;
+            App.counts = sCounts;
+            App.logs = sLogs;
 
-            // Save to Cache
-            localStorage.setItem('k9_data', JSON.stringify({ p: App.data, c: App.counts }));
+            // HEALING: If server count > local count, server wins (we missed something elsewhere).
+            // If local > server, local wins (we are ahead).
+            for (let p of App.data) {
+                const sVal = App.counts[p.nombre] || 0;
+                const lVal = App.localCounts[p.nombre] || 0;
+                if (sVal > lVal) App.localCounts[p.nombre] = sVal;
+            }
 
-            // Re-render (This will merge pending on top)
+            App.save();
             App.render();
 
-        } catch (e) {
-            console.error(e);
-            App.msg("Offline - Mostrando local");
-        } finally {
-            if (i) i.classList.remove('spin');
-        }
+        } catch (e) { App.msg("Offline mode"); }
+        finally { if (i) i.classList.remove('spin'); }
     },
 
-    // --- RENDER WITH MERGE ---
     render: () => {
-        // 1. Calculate Display Counts (Server + Pending)
-        const displayCounts = { ...App.counts };
-        App.pending.forEach(p => {
-            displayCounts[p.nombre] = (displayCounts[p.nombre] || 0) + 1;
-        });
-
-        // 2. Render Grid
+        // Grid uses LOCAL COUNTS primarily
         const g = document.getElementById('grid');
         g.innerHTML = '';
         if (App.data.length === 0) {
             g.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:white;opacity:0.7;">Sin Pasajeros</div>`;
         } else {
             App.data.forEach(p => {
-                const cnt = displayCounts[p.nombre] || 0;
+                // The Logic: Use LocalCount (which includes pending implicitly)
+                const cnt = App.localCounts[p.nombre] || 0;
                 const init = p.nombre.charAt(0).toUpperCase();
 
                 const el = document.createElement('div');
@@ -113,11 +103,11 @@ const App = {
             });
         }
 
-        // 3. Render Logs (Merge Pending Logs at top)
+        // History
         const h = document.getElementById('history-list');
         h.innerHTML = '';
 
-        // Merge real logs + pending logs
+        // Show pending on top of server logs
         const displayLogs = [...App.pending, ...App.logs];
 
         if (displayLogs.length === 0) {
@@ -126,12 +116,14 @@ const App = {
             displayLogs.forEach(x => {
                 const r = document.createElement('div');
                 r.className = 'log-item';
-                if (x.isPending) r.style.opacity = '0.7'; // Visual hint it's pending
+                if (x.isPending) {
+                    r.style.opacity = '0.6';
+                    r.style.border = '1px dashed rgba(255,255,255,0.3)';
+                }
 
                 let displayTime = "";
                 let displayDate = "";
 
-                // Logic to display date/time
                 if (x.isPending) {
                     displayTime = "Enviando...";
                 } else {
@@ -153,15 +145,9 @@ const App = {
                 let fullStr = displayTime || '--:--';
                 if (displayDate) fullStr += ` · ${displayDate}`;
 
-                // Only allow deleting confirmed logs with ID
-                let delBtn = '';
-                if (!x.isPending) {
-                    delBtn = `<button class="log-del" onclick="App.delLog('${x.id}', '${x.nombre}')">
-                        <span class="material-icons-round" style="font-size:18px">close</span>
-                    </button>`;
-                } else {
-                    delBtn = `<span class="material-icons-round spin" style="font-size:18px; opacity:0.5;">sync</span>`;
-                }
+                let delBtn = !x.isPending ?
+                    `<button class="log-del" onclick="App.delLog('${x.id}', '${x.nombre}')"><span class="material-icons-round" style="font-size:18px">close</span></button>` :
+                    ``;
 
                 r.innerHTML = `
                     <div class="log-info">
@@ -175,60 +161,66 @@ const App = {
         }
     },
 
-    // --- ADD WITH QUEUE ---
     add: async (n, p) => {
         if (navigator.vibrate) navigator.vibrate(50);
 
-        // Create Temp Pending Trip
+        // 1. Update LOCAL count instantly
+        App.localCounts[n] = (App.localCounts[n] || 0) + 1;
+        App.save();
+
+        // 2. Add to Pending Queue
         const tempId = 'pending-' + Date.now();
-        const tempTrip = {
-            nombre: n,
-            id: tempId,
-            isPending: true,
-            timestamp: Date.now()
-        };
+        App.pending.unshift({ nombre: n, id: tempId, isPending: true });
 
-        // Add to Queue
-        App.pending.unshift(tempTrip);
-
-        // Update UI Immediately
         App.render();
 
         try {
-            // Send to Server
             await fetch(`${API}?action=add_trip&nombre=${n}&precio=${p}`, { method: 'POST' });
-
-            // On Success: Remove from pending. 
-            // The next sync() will bring it back as a real confirmed trip.
-            // But to avoid flicker, we can wait for next sync.
-            // A simple strategy: Clean pending only after a purposeful sync
-            // For now, let's remove this specific pending item, assuming server has it.
-
+            // Remove from pending
             App.pending = App.pending.filter(x => x.id !== tempId);
-
-            // NOW trigger sync to fetch the "Real" version of this trip
-            App.sync(); // This will fill App.counts and App.logs correctly
+            // We do NOT sync immediately to avoid race condition where server hasn't updated yet.
+            // We rely on background sync or manual sync for confirmation.
+            // But we can trigger a sync with delay.
+            setTimeout(App.sync, 2000);
 
         } catch (e) {
-            console.error("Failed to send", e);
-            App.msg("Error de red - Reintentando...");
-            // Keep in pending? For now just UI feedback
+            console.error(e);
+            App.msg("Error red - Se reintentará");
         }
     },
 
     delLog: async (id, name) => {
-        if (!confirm("¿Borrar este viaje?")) return;
+        if (!confirm("¿Borrar?")) return;
         App.logs = App.logs.filter(x => x.id != id);
-        if (App.counts[name] > 0) App.counts[name]--;
-        App.render(); // Optimistic update
-        App.msg("Borrando...");
+
+        // Decrement local count if safe
+        if (App.localCounts[name] > 0) App.localCounts[name]--;
+        App.save();
+        App.render();
+
         await fetch(`${API}?action=delete_trip&id=${id}`, { method: 'POST' });
+    },
+
+    resetHistory: () => {
+        if (!confirm("¿Borrar Historial?")) return;
+        App.logs = []; App.counts = {}; App.localCounts = {}; App.pending = [];
+        App.save();
+        App.render();
+        fetch(`${API}?action=reset_history`, { method: 'POST' });
+        App.msg("Bitácora Limpia");
+    },
+
+    save: () => {
+        localStorage.setItem('k9.1_data', JSON.stringify({
+            p: App.data,
+            c: App.counts,
+            lc: App.localCounts
+        }));
     },
 
     nav: (tab) => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(`tab-${tab}`).classList.add('active');
-
         document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
         if (tab === 'passengers') document.querySelectorAll('.dock-btn')[0].classList.add('active');
         if (tab === 'history') document.querySelectorAll('.dock-btn')[1].classList.add('active');
@@ -251,42 +243,37 @@ const App = {
     },
     close: () => document.getElementById('modal').classList.remove('open'),
 
-    save: async (e) => {
+    saveP: async (e) => {
         e.preventDefault();
         const old = document.getElementById('eid').value;
         const n = document.getElementById('name').value;
         const p = document.getElementById('price').value;
         App.close();
         App.msg("Guardando...");
-
         if (old) {
             const ix = App.data.findIndex(x => x.nombre === old);
             if (ix >= 0) App.data[ix] = { nombre: n, precio: p, activo: true };
+            // Move local count to new name
+            if (old !== n) {
+                App.localCounts[n] = App.localCounts[old] || 0;
+                delete App.localCounts[old];
+            }
         }
         App.render();
         const act = old ? 'edit_passenger' : 'add_passenger';
         const q = new URLSearchParams({ action: act, nombre: n, precio: p, oldName: old, newName: n, newPrice: p });
         await fetch(`${API}?${q.toString()}`, { method: 'POST' });
-        App.sync();
+        App.save(); App.sync();
     },
-
     del: () => {
         if (!confirm("¿Eliminar?")) return;
         const n = document.getElementById('eid').value;
         App.close();
         App.data = App.data.filter(x => x.nombre !== n);
+        delete App.localCounts[n];
         App.render();
         fetch(`${API}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
     },
-
-    resetHistory: () => {
-        if (!confirm("¿Borrar Historial?")) return;
-        App.logs = []; App.counts = {}; App.pending = [];
-        App.render();
-        fetch(`${API}?action=reset_history`, { method: 'POST' });
-        App.msg("Bitácora Limpia");
-    },
-
     msg: (t) => {
         const el = document.getElementById('toast');
         el.innerText = t; el.classList.add('vis');

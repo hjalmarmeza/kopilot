@@ -1,8 +1,8 @@
-const CACHE = 'kopilot-smart-sync-v9.0';
+const CACHE = 'kopilot-bulletproof-v9.1';
 const FILES = [
     './index.html?v=8.0',
     './style.css?v=8.2',
-    './app.js?v=9.0',
+    './app.js?v=9.1',
     './manifest.json',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap',
     'https://fonts.googleapis.com/icon?family=Material+Icons+Round'
