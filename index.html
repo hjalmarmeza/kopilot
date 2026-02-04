@@ -6,92 +6,89 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Kopilot</title>
-    <!-- CACHE BUST v4 -->
-    <link rel="stylesheet" href="style.css?v=4.0">
+    <!-- CACHE BUST v5.0 -->
+    <link rel="stylesheet" href="style.css?v=5.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-    <header class="header">
-        <h1>Kopilot</h1>
-        <button class="add-btn" onclick="App.openAddModal()">
-            <span class="material-icons-round">add</span>
-        </button>
-    </header>
+    <!-- TAB 1: PILOTS -->
+    <div id="tab-pilots" class="tab-content active">
+        <header class="page-header">
+            <div class="page-title">Pilotos</div>
+            <button class="icon-btn" onclick="App.openAddModal()"><span class="material-icons-round">add</span></button>
+        </header>
 
-    <div class="scroll-area">
-        <div class="section-title">
-            <span>Pilotos</span>
-        </div>
-
-        <div id="grid" class="grid">
-            <div style="grid-column:1/-1; text-align:center; padding:50px; color:#3a3a3c;">
+        <div id="grid-container" class="circle-grid">
+            <!-- Circles Injected Here -->
+            <div style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">
                 <span class="material-icons-round spin">sync</span>
             </div>
         </div>
+    </div>
 
-        <div class="section-title">
-            <span>Hoy</span>
-            <span class="material-icons-round" onclick="App.confirmReset()"
-                style="cursor:pointer; opacity:0.5;">delete_sweep</span>
-        </div>
+    <!-- TAB 2: LOGS -->
+    <div id="tab-logs" class="tab-content">
+        <header class="page-header">
+            <div class="page-title">Bitácora</div>
+            <button class="icon-btn" onclick="App.confirmReset()"
+                style="color:#ff3b30; background:rgba(255,59,48,0.1);">
+                <span class="material-icons-round">delete</span>
+            </button>
+        </header>
 
-        <div id="history-list">
-            <!-- Items -->
+        <div id="log-list" class="log-list">
+            <!-- Logs Injected Here -->
         </div>
     </div>
 
-    <!-- Floating Dock -->
-    <div class="dock">
-        <button class="dock-btn" onclick="App.refreshData()">
-            <span class="material-icons-round">refresh</span>
+    <!-- BOTTOM NAV -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="App.switchTab('pilots')">
+            <span class="material-icons-round">grid_view</span>
+            Pilotos
         </button>
-    </div>
+        <button class="nav-item" onclick="App.switchTab('logs')">
+            <span class="material-icons-round">history</span>
+            Bitácora
+        </button>
+        <button class="nav-item" onclick="App.refresh()">
+            <span class="material-icons-round">refresh</span>
+            Sync
+        </button>
+    </nav>
 
-    <!-- Bottom Sheet -->
-    <div id="sheet" class="sheet-overlay">
-        <div class="sheet">
-            <h2 style="margin:0 0 20px 0;">Configurar</h2>
+    <!-- MODAL ADD/EDIT -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color:white;">Pasajero</h3>
             <form onsubmit="App.handleForm(event)">
-                <input type="hidden" id="edit-orig-name">
+                <input type="hidden" id="orig-name">
+                <input type="text" id="inp-name" class="input-style" placeholder="Nombre" required autocomplete="off">
+                <input type="number" id="inp-price" class="input-style" placeholder="Precio ($)" step="0.5"
+                    inputmode="decimal" required>
 
-                <div class="input-grp">
-                    <input type="text" id="inp-name" class="input-reset" placeholder="Nombre" required
-                        autocomplete="off">
-                </div>
-
-                <div class="input-grp">
-                    <input type="number" id="inp-price" class="input-reset" placeholder="Precio ($)" step="0.5"
-                        inputmode="decimal" required>
-                </div>
-
-                <div class="sheet-actions">
-                    <button type="button" id="btn-del" class="btn-sheet btn-del" onclick="App.deletePassenger()"
+                <div class="modal-btns">
+                    <button type="button" id="btn-del" class="btn-mod btn-del-icon" onclick="App.deletePassenger()"
                         style="display:none;">
                         <span class="material-icons-round">delete</span>
                     </button>
-                    <button type="button" class="btn-sheet btn-cancel" onclick="App.closeSheet()">Cancelar</button>
-                    <button type="submit" class="btn-sheet btn-save">Guardar</button>
+                    <button type="button" class="btn-mod btn-cancel" onclick="App.closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-mod btn-save">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="feedback" class="confetti">Acción completada</div>
+    <div id="toast" class="toast-msg">Acción realizada</div>
 
-    <script src="app.js?v=4.0"></script>
+    <script src="app.js?v=5.0"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then(reg => {
-                reg.update(); // Force Check
-            });
-        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
     </script>
 </body>
 

@@ -1,27 +1,22 @@
-const CACHE_NAME = 'kopilot-bento-v4.0-final'; // NEW NAME
-const ASSETS = [
-    './index.html?v=4.0',
-    './style.css?v=4.0',
-    './app.js?v=4.0',
+const CACHE = 'kopilot-circles-v5.0';
+const FILES = [
+    './index.html?v=5.0',
+    './style.css?v=5.0',
+    './app.js?v=5.0',
     './manifest.json'
 ];
 
-self.addEventListener('install', (e) => {
+self.addEventListener('install', e => {
     self.skipWaiting();
-    e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+    e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
 });
 
-self.addEventListener('activate', (e) => {
-    e.waitUntil(caches.keys().then(keys => Promise.all(
-        keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)
-    )));
+self.addEventListener('activate', e => {
+    e.waitUntil(caches.keys().then(k => Promise.all(k.map(key => key !== CACHE ? caches.delete(key) : null))));
     self.clients.claim();
 });
 
-self.addEventListener('fetch', (e) => {
-    if (e.request.url.includes('script.google.com')) {
-        e.respondWith(fetch(e.request));
-        return;
-    }
+self.addEventListener('fetch', e => {
+    if (e.request.url.includes('script.google.com')) { e.respondWith(fetch(e.request)); return; }
     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });

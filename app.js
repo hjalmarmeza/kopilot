@@ -6,217 +6,192 @@ const App = {
     recentTrips: [],
 
     init: async () => {
-        console.log("Kopilot 4.0 Bento Init");
-        // Load cache instantly
-        const cache = localStorage.getItem('kop_cache');
+        console.log("Kopilot 5.0 Circles");
+        const cache = localStorage.getItem('kop_v5_data');
         if (cache) {
-            const data = JSON.parse(cache);
-            App.passengers = data.p || [];
+            const d = JSON.parse(cache);
+            App.passengers = d.p || [];
             App.renderGrid();
         }
         await App.refresh();
     },
 
     refresh: async () => {
-        const btn = document.querySelector('.dock-btn .material-icons-round');
-        if (btn) btn.classList.add('spin');
+        const icon = document.querySelector('.nav-item:last-child span');
+        if (icon) icon.classList.add('spin');
 
         try {
             const [cRes, sRes] = await Promise.all([
                 fetch(`${API_URL}?action=get_config`),
                 fetch(`${API_URL}?action=get_summary`)
             ]);
+            const conf = await cRes.json();
+            const sum = await sRes.json();
 
-            const config = await cRes.json();
-            const summary = await sRes.json();
+            if (conf.status === 'success') App.passengers = conf.passengers;
 
-            if (config.status === 'success') App.passengers = config.passengers;
-
-            // Calc Counts
             App.tripCounts = {};
             App.recentTrips = [];
             const now = new Date();
-            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const m = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-            if (summary.status === 'success') {
-                // Reverse for history
-                const reversed = [...summary.trips].reverse();
-                App.recentTrips = reversed.slice(0, 5);
-
-                summary.trips.forEach(t => {
-                    if (t.mesId === month) App.tripCounts[t.nombre] = (App.tripCounts[t.nombre] || 0) + 1;
+            if (sum.status === 'success') {
+                const rev = [...sum.trips].reverse();
+                App.recentTrips = rev; // Full history for log tab
+                sum.trips.forEach(t => {
+                    if (t.mesId === m) App.tripCounts[t.nombre] = (App.tripCounts[t.nombre] || 0) + 1;
                 });
             }
 
-            // Save Cache
-            localStorage.setItem('kop_cache', JSON.stringify({ p: App.passengers }));
-
+            localStorage.setItem('kop_v5_data', JSON.stringify({ p: App.passengers }));
             App.renderGrid();
-            App.renderHistory();
+            App.renderLogs();
 
-        } catch (e) {
-            App.notify("Modo Offline");
-        } finally {
-            if (btn) btn.classList.remove('spin');
-        }
+        } catch (e) { console.error(e); App.toast("Offline Mode"); }
+        finally { if (icon) icon.classList.remove('spin'); }
     },
 
     renderGrid: () => {
-        const grid = document.getElementById('grid');
+        const grid = document.getElementById('grid-container');
         grid.innerHTML = '';
-
         if (App.passengers.length === 0) {
-            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#3a3a3c;padding:40px;">Sin Pilotos</div>`;
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#555;">Sin pilotos</div>`;
             return;
         }
 
-        App.passengers.forEach(p => {
+        App.passengers.forEach((p, i) => {
             const count = App.tripCounts[p.nombre] || 0;
             const init = p.nombre.charAt(0).toUpperCase();
 
-            const card = document.createElement('div');
-            card.className = 'card';
+            // Random Color seeded by name length + index
+            const colorIdx = (p.nombre.length + i) % 12 + 1;
+            const colorVar = `var(--c${colorIdx})`;
 
-            // Logic: Click card = Add Trip. Click Edit Icon = Edit.
-            card.onclick = (e) => {
-                if (e.target.closest('.edit-trigger')) return;
-                App.addTrip(p.nombre, p.precio);
-            };
+            const node = document.createElement('div');
+            node.className = 'passenger-node';
 
-            card.innerHTML = `
-                <div class="edit-trigger" onclick="App.openSheet('${p.nombre}', ${p.precio})">
-                    <span class="material-icons-round">more_horiz</span>
+            node.innerHTML = `
+                <div class="edit-badge" onclick="App.openEdit('${p.nombre}', ${p.precio})">
+                    <span class="material-icons-round" style="font-size:14px;">edit</span>
                 </div>
-                <div class="initial">${init}</div>
-                <div style="margin-top:auto;">
-                    <div class="name">${p.nombre}</div>
-                    <div class="trips-num">${count}</div>
-                    <div class="trips-lbl">viajes</div>
+                <div class="circle-btn" style="background:${colorVar};" onclick="App.addTrip('${p.nombre}', ${p.precio})">
+                    <span class="circle-initial">${init}</span>
+                    <span class="circle-count">${count}</span>
                 </div>
+                <div class="p-name">${p.nombre}</div>
             `;
-            grid.appendChild(card);
+            grid.appendChild(node);
         });
     },
 
-    renderHistory: () => {
-        const list = document.getElementById('history-list');
+    renderLogs: () => {
+        const list = document.getElementById('log-list');
         list.innerHTML = '';
         if (App.recentTrips.length === 0) {
-            list.innerHTML = `<div style="text-align:center;color:#3a3a3c;padding:20px;font-size:14px;">Nada hoy</div>`;
+            list.innerHTML = `<div class="empty-state">Bitácora vacía este mes</div>`;
             return;
         }
         App.recentTrips.forEach(t => {
             const row = document.createElement('div');
-            row.className = 'history-row';
-            row.innerHTML = `
-                <span class="history-name">${t.nombre}</span>
-                <span class="history-time">${t.fecha || 'Ahora'}</span>
-            `;
+            row.className = 'log-item';
+            row.innerHTML = `<div class="log-name">${t.nombre}</div><div class="log-time">${t.fecha || 'Hoy'}</div>`;
             list.appendChild(row);
         });
     },
 
     addTrip: async (name, price) => {
         if (navigator.vibrate) navigator.vibrate(50);
-        App.notify(`Registrando ${name}...`);
+        App.toast(`${name} +1`);
 
-        // Optimistic UI
         App.tripCounts[name] = (App.tripCounts[name] || 0) + 1;
+        // Fake Log
+        App.recentTrips.unshift({ nombre: name, fecha: 'Ahora' });
 
-        // Add Fake History
-        const list = document.getElementById('history-list');
-        const row = document.createElement('div');
-        row.className = 'history-row';
-        row.innerHTML = `<span class="history-name">${name}</span><span class="history-time">Ahora</span>`;
-        if (list.querySelector('div')?.innerText.includes('Nada')) list.innerHTML = '';
-        list.prepend(row);
+        App.renderGrid();
+        App.renderLogs();
 
-        App.renderGrid(); // Update count display
-
-        try {
-            await fetch(`${API_URL}?action=add_trip&nombre=${name}&precio=${price}`, { method: 'POST' });
-            App.notify("Guardado ✅");
-        } catch (e) {
-            App.notify("Error de red");
-        }
+        fetch(`${API_URL}?action=add_trip&nombre=${name}&precio=${price}`, { method: 'POST' });
     },
 
-    // SHEET LOGIC
+    // UI ACTIONS
+    switchTab: (tab) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+        document.getElementById(`tab-${tab}`).classList.add('active');
+        // Find nav button
+        const btns = document.querySelectorAll('.nav-item');
+        if (tab === 'pilots') btns[0].classList.add('active');
+        if (tab === 'logs') btns[1].classList.add('active');
+    },
+
+    // MODAL
     openAddModal: () => {
-        document.getElementById('edit-orig-name').value = '';
+        document.getElementById('orig-name').value = '';
         document.getElementById('inp-name').value = '';
         document.getElementById('inp-price').value = '';
         document.getElementById('btn-del').style.display = 'none';
-
-        document.getElementById('sheet').classList.add('active');
+        document.getElementById('modal').classList.add('open');
         setTimeout(() => document.getElementById('inp-name').focus(), 100);
     },
 
-    openSheet: (name, price) => {
-        document.getElementById('edit-orig-name').value = name;
-        document.getElementById('inp-name').value = name;
-        document.getElementById('inp-price').value = price;
+    openEdit: (n, p) => {
+        document.getElementById('orig-name').value = n;
+        document.getElementById('inp-name').value = n;
+        document.getElementById('inp-price').value = p;
         document.getElementById('btn-del').style.display = 'flex';
-
-        document.getElementById('sheet').classList.add('active');
+        document.getElementById('modal').classList.add('open');
     },
 
-    closeSheet: () => {
-        document.getElementById('sheet').classList.remove('active');
+    closeModal: () => {
+        document.getElementById('modal').classList.remove('open');
         document.activeElement?.blur();
     },
 
     handleForm: async (e) => {
         e.preventDefault();
-        const orig = document.getElementById('edit-orig-name').value;
+        const orig = document.getElementById('orig-name').value;
         const name = document.getElementById('inp-name').value;
         const price = document.getElementById('inp-price').value;
+        App.closeModal();
+        App.toast("Guardando...");
 
-        App.closeSheet();
-        App.notify("Guardando...");
-
-        // Optimistic
         if (orig) {
             const idx = App.passengers.findIndex(p => p.nombre === orig);
-            if (idx >= 0) App.passengers[idx] = { nombre: name, precio: price, activo: true };
+            if (idx > -1) App.passengers[idx] = { nombre: name, precio: price, activo: true };
         }
         App.renderGrid();
 
-        const action = orig ? 'edit_passenger' : 'add_passenger';
-        try {
-            const p = new URLSearchParams({ action, nombre: name, precio: price, oldName: orig, newName: name, newPrice: price });
-            await fetch(`${API_URL}?${p.toString()}`, { method: 'POST' });
-            setTimeout(App.refresh, 500);
-        } catch (e) { App.notify("Error"); }
+        const act = orig ? 'edit_passenger' : 'add_passenger';
+        const p = new URLSearchParams({ action: act, nombre: name, precio: price, oldName: orig, newName: name, newPrice: price });
+        await fetch(`${API_URL}?${p.toString()}`, { method: 'POST' });
+        setTimeout(App.refresh, 500);
     },
 
     deletePassenger: async () => {
-        const name = document.getElementById('edit-orig-name').value;
         if (!confirm("¿Eliminar?")) return;
-        App.closeSheet();
-
-        App.passengers = App.passengers.filter(p => p.nombre !== name);
+        const n = document.getElementById('orig-name').value;
+        App.closeModal();
+        App.passengers = App.passengers.filter(p => p.nombre !== n);
         App.renderGrid();
-
-        fetch(`${API_URL}?action=delete_passenger&nombre=${name}`, { method: 'POST' });
+        fetch(`${API_URL}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
     },
 
     confirmReset: async () => {
-        if (!confirm("¿Reiniciar Mes? Se borrará el historial visual.")) return;
-        App.notify("Limpiando...");
+        if (!confirm("¿Borrar historial?")) return;
         App.recentTrips = [];
         App.tripCounts = {};
         App.renderGrid();
-        App.renderHistory();
-
+        App.renderLogs();
+        App.toast("Historial Limpio");
         fetch(`${API_URL}?action=reset_history`, { method: 'POST' });
     },
 
-    notify: (msg) => {
-        const el = document.getElementById('feedback');
-        el.innerText = msg;
-        el.classList.add('show');
-        setTimeout(() => el.classList.remove('show'), 2500);
+    toast: (msg) => {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('vis');
+        setTimeout(() => t.classList.remove('vis'), 2000);
     }
 };
 
