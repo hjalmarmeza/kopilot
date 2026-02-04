@@ -6,7 +6,7 @@ const App = {
     recentTrips: [],
 
     init: async () => {
-        console.log("Kopilot 2.1 Init...");
+        console.log("Kopilot 3.0 (Premium) Init...");
         App.checkConnection();
 
         const cachedConfig = localStorage.getItem('kp_passengers');
@@ -18,10 +18,10 @@ const App = {
     },
 
     checkConnection: () => {
-        const indicator = document.getElementById('connection-status');
-        if (!indicator) return;
+        const h1 = document.querySelector('h1');
         const updateStatus = () => {
-            indicator.classList.toggle('online', navigator.onLine);
+            if (!navigator.onLine && h1) h1.style.opacity = "0.5";
+            else if (h1) h1.style.opacity = "1";
         };
         window.addEventListener('online', updateStatus);
         window.addEventListener('offline', updateStatus);
@@ -30,8 +30,6 @@ const App = {
 
     refreshData: async () => {
         try {
-            document.getElementById('loader')?.style.removeProperty('display');
-
             const [configRes, summaryRes] = await Promise.all([
                 fetch(`${API_URL}?action=get_config`),
                 fetch(`${API_URL}?action=get_summary`)
@@ -64,12 +62,10 @@ const App = {
             }
 
             App.renderDashboard();
-            document.getElementById('loader')?.style.setProperty('display', 'none');
 
         } catch (e) {
             console.error("Error refreshing data", e);
-            App.showToast("Maldita sea! Sin conexión.", true);
-            document.getElementById('loader')?.style.setProperty('display', 'none');
+            App.showToast("Sin conexión", true);
         }
     },
 
@@ -95,9 +91,7 @@ const App = {
             const card = document.createElement('div');
             card.className = 'widget-card';
 
-            // Acción principal al tocar la tarjeta: Registrar Viaje
             card.onclick = (e) => {
-                // Si tocó el botón de editar, no registrar viaje
                 if (e.target.closest('.w-edit-btn')) return;
                 App.registerTrip(p.nombre, p.precio);
             };
@@ -146,12 +140,12 @@ const App = {
 
             App.showToast(`Viaje guardado! ✅`);
 
-            // Fake update local history
-            const historyContainer = document.getElementById('recent-history');
+            const historyContainer = document.getElementById('history-container');
             if (historyContainer) {
+                if (historyContainer.innerText.includes('Sin viajes')) historyContainer.innerHTML = '';
                 const row = document.createElement('div');
-                row.className = 'history-item fade-in';
-                row.innerHTML = `<span class="h-name">${nombre}</span><span class="h-date">Ahora</span>`;
+                row.className = 'history-pill';
+                row.innerHTML = `<div style="font-weight:600;">${nombre}</div><div style="font-size:0.8rem; opacity:0.6;">Ahora</div>`;
                 historyContainer.prepend(row);
             }
             // Update counter locally
@@ -164,69 +158,81 @@ const App = {
         }
     },
 
-    // --- MODAL LOGIC ---
+    // --- MODAL LOGIC premium ---
     openAddModal: () => {
-        document.getElementById('modal-title').innerText = "Nuevo Pasajero";
-        document.getElementById('edit-original-name').value = ""; // Empty = New
-        document.getElementById('p-name-input').value = "";
-        document.getElementById('p-price-input').value = "";
-        document.getElementById('passenger-modal').classList.remove('hidden');
+        document.getElementById('edit-orig-name').value = "";
+        document.getElementById('inp-name').value = "";
+        document.getElementById('inp-price').value = "";
+        document.getElementById('p-modal').classList.add('active');
+        setTimeout(() => document.getElementById('inp-name').focus(), 100);
     },
 
     openEditModal: (name, price) => {
-        document.getElementById('modal-title').innerText = "Editar Pasajero";
-        document.getElementById('edit-original-name').value = name;
-        document.getElementById('p-name-input').value = name;
-        document.getElementById('p-price-input').value = price;
-        document.getElementById('passenger-modal').classList.remove('hidden');
+        document.getElementById('edit-orig-name').value = name;
+        document.getElementById('inp-name').value = name;
+        document.getElementById('inp-price').value = price;
+        document.getElementById('p-modal').classList.add('active');
     },
 
     closeModal: () => {
-        document.getElementById('passenger-modal').classList.add('hidden');
+        document.getElementById('p-modal').classList.remove('active');
+        document.activeElement?.blur();
     },
 
-    handlePassengerSubmit: async (e) => {
+    handleForm: async (e) => {
         e.preventDefault();
-        const originalName = document.getElementById('edit-original-name').value;
-        const name = document.getElementById('p-name-input').value;
-        const price = document.getElementById('p-price-input').value;
+        const originalName = document.getElementById('edit-orig-name').value;
+        const name = document.getElementById('inp-name').value;
+        const price = document.getElementById('inp-price').value;
 
         App.closeModal();
-        App.showToast("Guardando cambios...");
+        App.showToast("Guardando...");
+
+        if (originalName) {
+            const idx = App.passengers.findIndex(p => p.nombre === originalName);
+            if (idx >= 0) {
+                App.passengers[idx] = { nombre: name, precio: price, activo: true };
+                App.renderDashboard();
+            }
+        }
 
         const action = originalName ? 'edit_passenger' : 'add_passenger';
         const params = new URLSearchParams({
             action: action,
-            nombre: name, // For add
+            nombre: name,
             precio: price,
-            oldName: originalName, // For edit
-            newName: name, // For edit
+            oldName: originalName,
+            newName: name,
             newPrice: price
         });
 
         try {
             await fetch(`${API_URL}?${params.toString()}`, { method: 'POST' });
-            App.showToast("Listo! Actualizando...");
-            await App.refreshData(); // Reload list
+            App.showToast("Guardado en la nube ☁️");
+            setTimeout(() => App.refreshData(), 1000);
         } catch (err) {
-            App.showToast("Error al guardar config.", true);
+            App.showToast("Error de red", true);
         }
     },
 
-    showTab: (tabName) => {
-        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-        document.getElementById(tabName).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.nav-btn[onclick*="${tabName}"]`).classList.add('active');
-        if (tabName === 'dashboard') App.refreshData();
+    switchTab: (t) => {
+        // Placeholder
     },
 
     showToast: (msg, isError = false) => {
         const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.background = isError ? 'var(--danger)' : 'var(--success)';
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
+        const msgEl = document.getElementById('toast-msg');
+        if (msgEl) msgEl.innerText = msg;
+        else t.innerText = msg;
+
+        t.style.borderColor = isError ? '#ef4444' : 'rgba(255,255,255,0.1)';
+        const icon = t.querySelector('.material-icons-round');
+        if (icon) {
+            icon.style.color = isError ? '#ef4444' : '#4ade80';
+            icon.innerText = isError ? 'error' : 'check_circle';
+        }
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), 3000);
     }
 };
 
