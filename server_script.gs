@@ -12,7 +12,7 @@ function handleRequest(e) {
     const action = params.action;
     const ss = SpreadsheetApp.openById(SHEET_ID);
     
-    // 1. OBTENER CONFIGURACIÓN (Con filtro estricto)
+    // 1. OBTENER CONFIGURACIÓN (Con filtro estricto y limpieza de cache)
     if (action === "get_config") {
       let sheet = ss.getSheetByName("Config") || ss.insertSheet("Config");
       const data = sheet.getDataRange().getValues();
@@ -20,15 +20,33 @@ function handleRequest(e) {
       
       data.shift(); 
       const passengers = data.map(row => ({
-        nombre: String(row[0]),
+        nombre: String(row[0]).trim(),
         precio: row[1],
-        activo: String(row[2]).toLowerCase() === "true" 
-      })).filter(p => p.activo === true && p.nombre.trim() !== "");
+        activo: String(row[2]).toLowerCase() === "true" || row[2] === true
+      })).filter(p => p.activo === true && p.nombre !== "");
       
       return response({ status: "success", passengers: passengers });
     }
 
-    // 2. AGREGAR / EDITAR PASAJERO
+    // 2. BORRAR PASAJERO (Garantizado)
+    if (action === "delete_passenger") {
+      const name = String(params.nombre).trim().toLowerCase();
+      let sheet = ss.getSheetByName("Config");
+      if (!sheet) return response({ status: "error" });
+      
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const sheetName = String(data[i][0]).trim().toLowerCase();
+        if (sheetName === name) {
+           sheet.getRange(i + 1, 3).setValue(false); 
+           SpreadsheetApp.flush(); // Fuerza el guardado físico en Google Sheets
+           return response({ status: "success" });
+        }
+      }
+      return response({ status: "not_found" });
+    }
+
+    // 3. AGREGAR / EDITAR PASAJERO
     if (action === "add_passenger" || action === "edit_passenger") {
       const isEdit = (action === "edit_passenger");
       const name = params.nombre;
@@ -55,23 +73,6 @@ function handleRequest(e) {
       }
       SpreadsheetApp.flush();
       return response({ status: "success" });
-    }
-
-    // 3. BORRAR PASAJERO (Definitivo)
-    if (action === "delete_passenger") {
-      const name = String(params.nombre).trim().toLowerCase();
-      let sheet = ss.getSheetByName("Config");
-      if (!sheet) return response({ status: "error" });
-      
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        if (String(data[i][0]).trim().toLowerCase() === name) {
-           sheet.getRange(i + 1, 3).setValue(false); 
-           SpreadsheetApp.flush(); // Asegura que el cambio se guarde YA
-           return response({ status: "success" });
-        }
-      }
-      return response({ status: "not_found" });
     }
 
     // 4. REGISTRAR VIAJE
