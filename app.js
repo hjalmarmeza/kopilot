@@ -1,11 +1,11 @@
 const API = "https://script.google.com/macros/s/AKfycbyz4FkiRpBQnYu4jRX4dudEy22TBnE2P0RmwX2vooFa2fIa2QPf0HLuo85bZkuplyNk/exec";
 
 const App = {
-    data: [],    // Passengers Configuration
-    logs: [],    // The Single Source of Truth for Trips
+    data: [],    // Pasajeros
+    logs: [],    // Viajes
 
     init: () => {
-        console.log("Kopilot 9.3 Minimal UI");
+        console.log("Kopilot 9.5 Fixed UI");
         const c = localStorage.getItem('k9.2_data');
         if (c) {
             const d = JSON.parse(c);
@@ -25,13 +25,11 @@ const App = {
     },
 
     render: () => {
-        // 1. Calculate Counts dynamically from Logs
         const counts = {};
         App.logs.forEach(l => {
             counts[l.nombre] = (counts[l.nombre] || 0) + 1;
         });
 
-        // 2. Render Grid
         const g = document.getElementById('grid');
         g.innerHTML = '';
         if (App.data.length === 0) {
@@ -56,49 +54,18 @@ const App = {
             });
         }
 
-        // 3. Render Logs
         const h = document.getElementById('history-list');
         h.innerHTML = '';
-
         if (App.logs.length === 0) {
             h.innerHTML = `<div style="text-align:center;padding:30px;color:white;opacity:0.6;">Sin viajes hoy</div>`;
         } else {
             App.logs.forEach(x => {
                 const r = document.createElement('div');
                 r.className = 'log-item';
-
-                const isTemp = String(x.id).startsWith('temp');
-                if (isTemp) {
-                    r.style.opacity = '0.7';
-                    r.style.border = '1px dashed rgba(255,255,255,0.3)';
-                }
-
-                // Date/Time Parsing
-                let fullStr = "--:--";
-                if (x.time) {
-                    if (x.time.includes && x.time.includes('T')) {
-                        const d = new Date(x.time);
-                        fullStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-                    } else {
-                        fullStr = x.time;
-                    }
-                }
-                if (x.date) {
-                    let day = '', mon = '';
-                    if (x.date.includes && x.date.includes('-')) {
-                        const parts = x.date.split('-');
-                        if (parts.length === 3) { day = parts[2].substr(0, 2); mon = parts[1]; }
-                    } else {
-                        const d = new Date(x.date);
-                        if (!isNaN(d)) { day = d.getDate(); mon = d.getMonth() + 1; }
-                    }
-                    if (day) fullStr += ` · ${day}/${mon}`;
-                }
-
                 r.innerHTML = `
                     <div class="log-info">
                         <span style="font-weight:600">${x.nombre}</span>
-                        <span class="log-date">${fullStr}</span>
+                        <span class="log-date">${x.time || '--:--'}</span>
                     </div>
                     <button class="log-del" onclick="App.delLog('${x.id}', '${x.nombre}')">
                         <span class="material-icons-round" style="font-size:18px">close</span>
@@ -107,63 +74,27 @@ const App = {
                 h.appendChild(r);
             });
         }
-
         localStorage.setItem('k9.2_data', JSON.stringify({ p: App.data, l: App.logs }));
     },
 
     add: async (n, p) => {
         if (navigator.vibrate) navigator.vibrate(50);
-
         const now = new Date();
         const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-        const date = now.toISOString().split('T')[0];
         const tempId = 'temp-' + Date.now();
-
-        const newTrip = {
-            nombre: n,
-            precio: p,
-            time: time,
-            date: date,
-            id: tempId,
-            mesId: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
-            timestamp: Date.now()
-        };
-
+        const newTrip = { nombre: n, precio: p, time: time, id: tempId, timestamp: Date.now() };
         App.logs.unshift(newTrip);
         App.render();
         App.msg(`+1 ${n}`);
-
         try {
             const res = await fetch(`${API}?action=add_trip&nombre=${n}&precio=${p}`, { method: 'POST' });
             const json = await res.json();
-
             if (json.status === 'success' && json.id) {
                 const trip = App.logs.find(x => x.id === tempId);
                 if (trip) trip.id = json.id;
                 App.render();
             }
-        } catch (e) {
-            console.error(e);
-            App.msg("Offline - Se guardó local");
-        }
-    },
-
-    delLog: async (id, name) => {
-        if (!confirm("¿Borrar este viaje?")) return;
-        App.logs = App.logs.filter(x => x.id != id);
-        App.render();
-        App.msg("Borrando...");
-        if (!String(id).startsWith('temp')) {
-            await fetch(`${API}?action=delete_trip&id=${id}`, { method: 'POST' });
-        }
-    },
-
-    resetHistory: () => {
-        if (!confirm("¿Borrar Bitácora y Contadores?")) return;
-        App.logs = [];
-        App.render();
-        fetch(`${API}?action=reset_history`, { method: 'POST' });
-        App.msg("Bitácora Limpia");
+        } catch (e) { App.msg("Modo Offline"); }
     },
 
     sync: async () => {
@@ -172,43 +103,12 @@ const App = {
                 fetch(`${API}?action=get_config`),
                 fetch(`${API}?action=get_summary`)
             ]);
-
             const conf = await cR.json();
             const sum = await sR.json();
-
             if (conf.status === 'success') App.data = conf.passengers;
-
-            if (sum.status === 'success') {
-                const serverLogs = [...sum.trips].reverse();
-                const now = Date.now();
-                const LAG_WINDOW = 60000;
-
-                const localProtected = App.logs.filter(l => {
-                    const isTemp = String(l.id).startsWith('temp');
-                    const isFresh = l.timestamp && (now - l.timestamp < LAG_WINDOW);
-                    const inServer = serverLogs.find(s => s.id == l.id);
-                    return (isTemp || isFresh) && !inServer;
-                });
-
-                const finalMap = new Map();
-                serverLogs.forEach(l => finalMap.set(String(l.id), l));
-                localProtected.forEach(l => finalMap.set(String(l.id), l));
-
-                const merged = Array.from(finalMap.values());
-                App.logs = merged;
-
-                App.logs.sort((a, b) => {
-                    const isTempA = String(a.id).startsWith('temp');
-                    const isTempB = String(b.id).startsWith('temp');
-                    if (isTempA && !isTempB) return -1;
-                    if (!isTempA && isTempB) return 1;
-                    return 0;
-                });
-            }
-
+            if (sum.status === 'success') App.logs = [...sum.trips].reverse();
             App.render();
-
-        } catch (e) { App.msg("Offline Mode"); }
+        } catch (e) { App.msg("Error de conexión"); }
     },
 
     nav: (tab) => {
@@ -227,6 +127,7 @@ const App = {
         document.getElementById('modal').classList.add('open');
         setTimeout(() => document.getElementById('name').focus(), 100);
     },
+
     edit: (n, p) => {
         document.getElementById('eid').value = n;
         document.getElementById('name').value = n;
@@ -243,36 +144,29 @@ const App = {
         const p = document.getElementById('price').value;
         App.close();
         App.msg("Guardando...");
-        if (old) {
-            const ix = App.data.findIndex(x => x.nombre === old);
-            if (ix >= 0) App.data[ix] = { nombre: n, precio: p, activo: true };
-            App.logs.forEach(l => { if (l.nombre === old) l.nombre = n; });
-        }
-        App.render();
         const act = old ? 'edit_passenger' : 'add_passenger';
-        const q = new URLSearchParams({ action: act, nombre: n, precio: p, oldName: old, newName: n, newPrice: p });
+        const q = new URLSearchParams({ action: act, nombre: n, precio: p, oldName: old });
         await fetch(`${API}?${q.toString()}`, { method: 'POST' });
         App.sync();
     },
+
     del: async () => {
         if (!confirm("¿Eliminar Pasajero?")) return;
         const n = document.getElementById('eid').value;
         App.close();
-
-        // 1. Borrado Optimista Local
-        App.data = App.data.filter(x => x.nombre !== n);
-        App.render();
         App.msg("Eliminando...");
-
         try {
-            // 2. Esperar al servidor antes de sincronizar nada más
-            await fetch(`${API}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
-            App.msg("Eliminado correctamente");
-            // Sincronización ligera para confirmar
-            App.sync();
+            // Esperamos que el servidor confirme el borrado
+            const res = await fetch(`${API}?action=delete_passenger&nombre=${encodeURIComponent(n)}`, { method: 'POST' });
+            const json = await res.json();
+            if (json.status === 'success') {
+                App.msg("Eliminado");
+                App.sync(); // Refrescar datos reales
+            } else {
+                App.msg("Error al borrar");
+            }
         } catch (e) {
-            App.msg("Error al borrar del servidor");
-            console.error(e);
+            App.msg("Error de red");
         }
     },
     msg: (t) => {
