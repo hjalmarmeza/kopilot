@@ -51,6 +51,13 @@ const App = {
                     const cnt = counts[p.nombre] || 0;
                     const card = document.createElement('div');
                     card.className = 'glass-card';
+
+                    // Lógica para achicar fuente si el nombre es largo
+                    let fontSize = '1.2rem';
+                    if (p.nombre.length > 10) fontSize = '1rem';
+                    if (p.nombre.length > 14) fontSize = '0.8rem';
+                    if (p.nombre.length > 18) fontSize = '0.7rem';
+
                     card.onclick = (e) => {
                         if (e.target.closest('.c-menu')) return;
                         App.add(p.nombre, p.precio);
@@ -60,7 +67,7 @@ const App = {
                             <span class="material-icons-round">more_horiz</span>
                         </div>
                         <div class="c-bg-number">${cnt}</div>
-                        <div class="c-name">${p.nombre}</div>
+                        <div class="c-name" style="font-size: ${fontSize}">${p.nombre}</div>
                     `;
                     grid.appendChild(card);
                 });

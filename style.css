@@ -49,6 +49,7 @@ body {
     font-weight: 900;
     letter-spacing: -3px;
     background: linear-gradient(to bottom, #fff, #666);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 50px;
@@ -171,20 +172,35 @@ body {
 }
 
 .c-bg-number {
-    font-size: 6rem;
-    font-weight: 900;
+    position: absolute;
+    top: 43%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 7.5rem;
+    font-weight: 950;
     color: #ffffff;
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-    line-height: 1;
-    margin-bottom: 5px;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+    font-family: 'Inter', sans-serif;
+    z-index: 2;
+    pointer-events: none;
 }
 
+
+
 .c-name {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--c-text-sec);
+    font-size: 1.2rem;
+    /* Más grande */
+    font-weight: 800;
+    color: var(--c-text);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
+    width: 90%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    /* Usaremos JS para ajustar el tamaño si es largo */
+    margin-top: -5px;
 }
 
 .c-menu {
@@ -314,8 +330,10 @@ body {
 
 .btns {
     display: flex;
-    gap: 15px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: 15px;
+    width: 100%;
+    justify-content: center;
 }
 
 .btn {
@@ -344,13 +362,15 @@ body {
 }
 
 .btn-del {
-    background: #ff4d4d;
-    color: white;
-    width: 60px;
+    background: rgba(255, 77, 77, 0.15);
+    color: #ff4d4d;
+    width: 65px;
     flex: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 1px solid rgba(255, 77, 77, 0.3);
+    border-radius: 18px;
 }
 
 #toast {
