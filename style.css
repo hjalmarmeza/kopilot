@@ -21,7 +21,10 @@ body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
+    position: fixed;
+    /* Previene rebote en iOS */
 }
 
 @keyframes bgAnim {
@@ -119,25 +122,27 @@ body {
     flex: 1;
     flex-direction: column;
     height: 100%;
-    /* Ensure full height */
-    overflow: hidden;
-    /* Hide main overflow, let inner scroll */
-    padding: 24px;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    padding: 16px;
+    /* Reducido un poco para dar más aire a los widgets */
+    padding-top: 24px;
     padding-bottom: 0px;
     animation: slideUp 0.4s;
+    box-sizing: border-box;
 }
 
-/* Make grid and history list scrollable */
 .grid,
 #history-list {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 120px;
-    /* Space for Dock */
+    overflow-x: hidden;
+    padding-bottom: 140px;
     -webkit-overflow-scrolling: touch;
-    /* Smooth scroll on iOS */
-    padding-right: 4px;
-    /* Prevent scrollbar overlap */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .tab.active {
@@ -186,9 +191,9 @@ body {
 /* CARDS GRID */
 .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-    padding-bottom: 120px;
+    width: 100%;
 }
 
 .glass-card {
