@@ -232,9 +232,13 @@ body {
 }
 
 .log-date {
-    font-size: 0.8rem;
-    color: var(--c-text-sec);
-    margin-top: 4px;
+    font-size: 1.1rem;
+    /* Mucho más grande */
+    font-weight: 600;
+    color: var(--c-accent);
+    /* Color cian neón para resaltar */
+    margin-top: 6px;
+    letter-spacing: 0.5px;
 }
 
 .log-del {
