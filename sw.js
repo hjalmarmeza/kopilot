@@ -1,12 +1,11 @@
-const CACHE = 'kopilot-icon-v9.4';
+const CACHE = 'kopilot-v10.2';
 const FILES = [
-    './index.html?v=9.3',
-    './style.css?v=8.2',
-    './app.js?v=9.3',
+    './',
+    './index.html',
+    './style.css',
+    './app.js',
     './icon.png',
-    './manifest.json',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap',
-    'https://fonts.googleapis.com/icon?family=Material+Icons+Round'
+    './manifest.json'
 ];
 
 self.addEventListener('install', e => {
@@ -20,6 +19,20 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    if (e.request.url.includes('script.google.com')) { e.respondWith(fetch(e.request)); return; }
-    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    // API calls always network
+    if (e.request.url.includes('script.google.com')) {
+        return;
+    }
+
+    // For other files, try cache then network
+    e.respondWith(
+        caches.match(e.request).then(r => {
+            return r || fetch(e.request).then(response => {
+                return caches.open(CACHE).then(cache => {
+                    cache.put(e.request, response.clone());
+                    return response;
+                });
+            });
+        })
+    );
 });

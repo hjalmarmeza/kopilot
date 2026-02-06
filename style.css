@@ -173,8 +173,7 @@ body {
 }
 
 .c-bg-number {
-    font-size: 5.5rem;
-    /* Tamaño optimizado para visibilidad */
+    font-size: 5.2rem;
     font-weight: 950;
     color: #ffffff;
     text-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
@@ -182,6 +181,7 @@ body {
     line-height: 0.9;
     z-index: 2;
     pointer-events: none;
+    margin-top: -10px;
 }
 
 .c-name {
@@ -202,10 +202,13 @@ body {
 
 .c-menu {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    color: rgba(255, 255, 255, 0.2);
-    padding: 5px;
+    top: 10px;
+    /* Más arriba */
+    right: 10px;
+    /* Más a la derecha */
+    color: rgba(255, 255, 255, 0.3);
+    padding: 8px;
+    z-index: 10;
 }
 
 /* LOGS */
