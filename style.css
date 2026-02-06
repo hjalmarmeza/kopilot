@@ -191,13 +191,19 @@ body {
 /* CARDS GRID */
 .grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: min-content;
+    /* Fuerza a que las filas solo midan lo necesario */
     gap: 12px;
     width: 100%;
+    align-content: start;
+    /* Evita que las tarjetas se estiren verticalmente si hay pocas */
 }
 
 .glass-card {
-    aspect-ratio: 1 / 0.9;
+    width: 100%;
+    aspect-ratio: 1 / 0.75;
+    /* Mucho más compactas: el alto será el 75% del ancho */
     background: rgba(255, 255, 255, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 20px;
@@ -208,7 +214,8 @@ body {
     position: relative;
     backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s;
+    overflow: hidden;
+    /* Evita que el contenido las agrande */
 }
 
 .glass-card:active {
@@ -217,10 +224,11 @@ body {
 }
 
 .c-init {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    /* Reducido un poco para que quepa mejor */
     font-weight: 300;
     opacity: 0.9;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .c-name {

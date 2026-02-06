@@ -257,13 +257,26 @@ const App = {
         await fetch(`${API}?${q.toString()}`, { method: 'POST' });
         App.sync();
     },
-    del: () => {
+    del: async () => {
         if (!confirm("¿Eliminar Pasajero?")) return;
         const n = document.getElementById('eid').value;
         App.close();
+
+        // 1. Borrado Optimista Local
         App.data = App.data.filter(x => x.nombre !== n);
         App.render();
-        fetch(`${API}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
+        App.msg("Eliminando...");
+
+        try {
+            // 2. Esperar al servidor antes de sincronizar nada más
+            await fetch(`${API}?action=delete_passenger&nombre=${n}`, { method: 'POST' });
+            App.msg("Eliminado correctamente");
+            // Sincronización ligera para confirmar
+            App.sync();
+        } catch (e) {
+            App.msg("Error al borrar del servidor");
+            console.error(e);
+        }
     },
     msg: (t) => {
         const el = document.getElementById('toast');
