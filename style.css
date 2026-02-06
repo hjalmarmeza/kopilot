@@ -151,17 +151,19 @@ body {
 
 /* PASSENGER CARD */
 .glass-card {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1 / 1.25;
+    /* Widget alargado verticalmente */
     background: var(--c-card);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 35px;
+    border-radius: 40px;
+    /* Bordes un poco más suaves */
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    /* Centrado para control total */
-    padding: 15px;
+    justify-content: flex-end;
+    /* Alineado hacia abajo del espacio disponible */
+    padding: 20px;
     box-shadow: var(--relief-shadow);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -173,46 +175,40 @@ body {
 }
 
 .c-bg-number {
-    font-size: 5.4rem;
-    /* Reducido un poco para dar espacio */
+    font-size: 6.2rem;
+    /* Recuperamos tamaño al haber más espacio vertical */
     font-weight: 950;
     color: #ffffff;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
     font-family: 'Inter', sans-serif;
-    line-height: 1;
+    line-height: 0.9;
     z-index: 1;
     pointer-events: none;
-    margin-top: -10px;
+    margin-bottom: 5px;
 }
 
 .c-name {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: var(--c-text);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    width: 85%;
-    /* Un poco menos para no chocar */
+    letter-spacing: 0.8px;
+    width: 95%;
     text-align: center;
     white-space: nowrap;
-    /* FUERZA UNA SOLA LÍNEA */
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.2;
-    margin-top: 5px;
     z-index: 3;
+    padding-bottom: 5px;
 }
 
 .c-menu {
     position: absolute;
-    top: 5px;
-    /* Más arriba */
-    right: 5px;
-    /* Más a la derecha */
+    top: 15px;
+    right: 15px;
     color: #fff;
-    /* Más brillante para ver mejor */
-    background: rgba(0, 0, 0, 0.4);
-    /* Fondo para no perderse */
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 50%;
     width: 34px;
     height: 34px;
