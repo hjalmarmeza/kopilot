@@ -102,9 +102,11 @@ function handleRequest(e) {
         sheet.appendRow(["Fecha", "Hora", "Pasajero", "Precio", "MesID", "Timestamp", "ID"]);
       }
       
-      const mesId = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM");
-      const hora = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "HH:mm");
-      const dia = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      // PRIORIDAD: Usar la hora y fecha enviada por el celular (EEUU)
+      // FALLBACK: Usar Session.getScriptTimeZone() si no vienen parámetros
+      const dia = params.local_date || Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      const hora = params.local_time || Utilities.formatDate(fecha, Session.getScriptTimeZone(), "HH:mm");
+      const mesId = dia.substring(0, 7); // yyyy-MM
       
       sheet.appendRow([dia, hora, nombre, precio, mesId, fecha.toString(), ts]);
       SpreadsheetApp.flush();

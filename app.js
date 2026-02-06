@@ -161,12 +161,22 @@ const App = {
     add: async (n, p) => {
         if (navigator.vibrate) navigator.vibrate(40);
         const now = new Date();
-        const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        // Obtenemos fecha y hora LOCAL del dispositivo
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const time = `${hh}:${mm}`;
+
+        const yyyy = now.getFullYear();
+        const mon = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const date = `${yyyy}-${mon}-${dd}`;
+
         const tempId = 'temp-' + Date.now();
 
         const newTrip = {
             nombre: n, precio: p, time: time, id: tempId,
-            timestamp: Date.now(), date: now.toISOString().split('T')[0]
+            timestamp: Date.now(), date: date
         };
 
         App.logs.unshift(newTrip);
@@ -174,7 +184,8 @@ const App = {
         App.msg(`REGISTRADO: ${n}`);
 
         try {
-            await fetch(`${API}?action=add_trip&nombre=${encodeURIComponent(n)}&precio=${p}`, { method: 'POST' });
+            // Enviamos la fecha y hora local al servidor para que no use la del servidor (Europa)
+            await fetch(`${API}?action=add_trip&nombre=${encodeURIComponent(n)}&precio=${p}&local_date=${date}&local_time=${time}`, { method: 'POST' });
             setTimeout(() => App.sync(), 2000);
         } catch (e) { App.msg("Guardado en Memoria"); }
     },
