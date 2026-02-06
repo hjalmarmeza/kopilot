@@ -52,11 +52,12 @@ const App = {
                     const card = document.createElement('div');
                     card.className = 'glass-card';
 
-                    // Lógica para achicar fuente si el nombre es largo
+                    // Lógica para achicar fuente y asegurar que el nombre quepa SIEMPRE
                     let fontSize = '1.1rem';
-                    if (p.nombre.length > 10) fontSize = '0.9rem';
-                    if (p.nombre.length > 14) fontSize = '0.75rem';
-                    if (p.nombre.length > 18) fontSize = '0.65rem';
+                    if (p.nombre.length > 8) fontSize = '0.9rem';
+                    if (p.nombre.length > 12) fontSize = '0.75rem';
+                    if (p.nombre.length > 16) fontSize = '0.65rem';
+                    if (p.nombre.length > 20) fontSize = '0.55rem';
 
                     card.onclick = (e) => {
                         if (e.target.closest('.c-menu')) return;
@@ -124,20 +125,26 @@ const App = {
             if (sum.status === 'success') {
                 const sLogs = [...sum.trips].reverse();
                 const now = Date.now();
-                // Persist very recent local clicks before they hit server
-                const fresh = App.logs.filter(l => {
-                    return String(l.id).startsWith('temp') && (now - l.timestamp < 6000);
-                });
-                App.logs = [...fresh, ...sLogs.filter(s => !fresh.find(f => f.nombre === s.nombre && Math.abs(f.timestamp - s.id) < 5000))];
+                // 1. Filtrar registros temporales frescos (menos de 7 seg)
+                const fresh = App.logs.filter(l => String(l.id).startsWith('temp') && (now - l.timestamp < 7000));
 
-                // Cleanup duplicate temporary ones if server caught up
-                const unique = [];
-                const seen = new Set();
-                App.logs.forEach(l => {
-                    const key = l.id;
-                    if (!seen.has(key)) { unique.push(l); seen.add(key); }
+                // 2. Filtrar logs del servidor que YA están representados por los locales frescos
+                // Buscamos coincidencia por nombre y cercanía de tiempo
+                const sFiltered = sLogs.filter(s => {
+                    const isAlreadyInFresh = fresh.some(f => f.nombre === s.nombre && Math.abs(f.timestamp - s.id) < 8000);
+                    return !isAlreadyInFresh;
                 });
-                App.logs = unique;
+
+                App.logs = [...fresh, ...sFiltered];
+
+                // 3. Limpieza final: si hay duplicados literales por ID
+                const seen = new Set();
+                App.logs = App.logs.filter(l => {
+                    const k = l.id;
+                    if (seen.has(k)) return false;
+                    seen.add(k);
+                    return true;
+                });
             }
             App.render();
         } catch (e) {

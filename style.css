@@ -173,15 +173,15 @@ body {
 }
 
 .c-bg-number {
-    font-size: 5.2rem;
+    font-size: 5.6rem;
     font-weight: 950;
     color: #ffffff;
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
     font-family: 'Inter', sans-serif;
-    line-height: 0.9;
-    z-index: 2;
+    line-height: 1;
+    z-index: 1;
     pointer-events: none;
-    margin-top: -10px;
+    margin-top: -5px;
 }
 
 .c-name {
@@ -189,26 +189,32 @@ body {
     font-weight: 800;
     color: var(--c-text);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    width: 90%;
+    letter-spacing: 0.5px;
+    width: 95%;
     text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 10px;
-    /* Margen superior para separar del número */
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.1;
+    margin-top: 5px;
     z-index: 3;
+    overflow: visible;
 }
 
 .c-menu {
     position: absolute;
-    top: 10px;
-    /* Más arriba */
-    right: 10px;
-    /* Más a la derecha */
-    color: rgba(255, 255, 255, 0.3);
-    padding: 8px;
-    z-index: 10;
+    top: 8px;
+    right: 8px;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    /* Círculo sutil */
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    /* Por encima de todo */
 }
 
 /* LOGS */
