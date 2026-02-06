@@ -1,15 +1,15 @@
 const API = "https://script.google.com/macros/s/AKfycbyz4FkiRpBQnYu4jRX4dudEy22TBnE2P0RmwX2vooFa2fIa2QPf0HLuo85bZkuplyNk/exec";
 
 const App = {
-    data: [],    // Passengers Configuration
-    logs: [],    // The Single Source of Truth for Trips
-    deletedThisSession: new Set(), // Ghost prevention
+    data: [],
+    logs: [],
+    deletedThisSession: new Set(),
 
     init: () => {
-        console.log("Kopilot 9.9 Universal Fix");
-        const cached = localStorage.getItem('k9.2_data');
-        if (cached) {
-            const d = JSON.parse(cached);
+        console.log("Kopilot 10.0 Premium Engine Initialized");
+        const cache = localStorage.getItem('k10_data');
+        if (cache) {
+            const d = JSON.parse(cache);
             App.data = d.p || [];
             App.logs = d.l || [];
         }
@@ -18,109 +18,124 @@ const App = {
     },
 
     start: () => {
-        const intro = document.getElementById('intro-screen');
-        const content = document.getElementById('app-content');
-        if (intro) intro.classList.add('hidden');
-        if (content) setTimeout(() => content.classList.add('visible'), 300);
+        if (navigator.vibrate) navigator.vibrate(50);
+        document.getElementById('intro-screen').classList.add('hidden');
+        document.getElementById('app-content').classList.add('visible');
+    },
+
+    nav: (target) => {
+        if (navigator.vibrate) navigator.vibrate(20);
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + target).classList.add('active');
+
+        document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+        const btns = document.querySelectorAll('.dock-btn');
+        if (target === 'passengers') btns[0].classList.add('active');
+        if (target === 'history') btns[1].classList.add('active');
     },
 
     render: () => {
-        // 1. Calculate Counts
         const counts = {};
-        App.logs.forEach(l => {
-            counts[l.nombre] = (counts[l.nombre] || 0) + 1;
-        });
+        App.logs.forEach(l => { counts[l.nombre] = (counts[l.nombre] || 0) + 1; });
 
-        // 2. Render Grid
-        const g = document.getElementById('grid');
-        if (g) {
-            g.innerHTML = '';
-            const visibleData = App.data.filter(p => !App.deletedThisSession.has(p.nombre.toLowerCase()));
+        // 1. GRID RENDER
+        const grid = document.getElementById('grid');
+        if (grid) {
+            grid.innerHTML = '';
+            const visible = App.data.filter(p => !App.deletedThisSession.has(p.nombre.toLowerCase()));
 
-            if (visibleData.length === 0) {
-                g.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:white;opacity:0.3;">SIN PASAJEROS</div>`;
+            if (visible.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:100px;opacity:0.3;font-weight:700;">AGREGAR PASAJERO</div>`;
             } else {
-                visibleData.forEach(p => {
+                visible.forEach(p => {
                     const cnt = counts[p.nombre] || 0;
-                    const el = document.createElement('div');
-                    el.className = 'glass-card';
-                    el.onclick = (e) => {
+                    const card = document.createElement('div');
+                    card.className = 'glass-card';
+                    card.onclick = (e) => {
                         if (e.target.closest('.c-menu')) return;
                         App.add(p.nombre, p.precio);
                     };
-                    el.innerHTML = `
-                        <div class="c-bg-number">${cnt}</div>
+                    card.innerHTML = `
                         <div class="c-menu" onclick="App.edit('${p.nombre}',${p.precio})">
-                            <span class="material-icons-round" style="font-size:24px">more_horiz</span>
+                            <span class="material-icons-round">more_horiz</span>
                         </div>
+                        <div class="c-bg-number">${cnt}</div>
                         <div class="c-name">${p.nombre}</div>
                     `;
-                    g.appendChild(el);
+                    grid.appendChild(card);
                 });
             }
         }
 
-        // 3. Render Logs
-        const h = document.getElementById('history-list');
-        if (h) {
-            h.innerHTML = '';
-            const sortedLogs = [...App.logs].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            sortedLogs.forEach(x => {
-                const r = document.createElement('div');
-                r.className = 'log-item';
+        // 2. HISTORY RENDER
+        const list = document.getElementById('history-list');
+        if (list) {
+            list.innerHTML = '';
+            if (App.logs.length === 0) {
+                list.innerHTML = `<div style="text-align:center;padding:50px;opacity:0.3;">LISTA VACÍA</div>`;
+            } else {
+                [...App.logs].forEach(x => {
+                    const row = document.createElement('div');
+                    row.className = 'log-item';
 
-                let fullStr = x.time || "--:--";
-                if (x.date && x.date.includes('-')) {
-                    const parts = x.date.split('-');
-                    fullStr += ` · ${parts[2]}/${parts[1]}`;
-                }
+                    let dateLabel = x.time || '--:--';
+                    if (x.date) {
+                        const parts = x.date.split('-');
+                        if (parts.length === 3) dateLabel += ` • ${parts[2]}/${parts[1]}`;
+                    }
 
-                r.innerHTML = `
-                    <div class="log-info">
-                        <span style="font-weight:600; color:var(--c-text)">${x.nombre}</span>
-                        <span class="log-date" style="color:var(--c-text-sec)">${fullStr}</span>
-                    </div>
-                    <button class="log-del" onclick="App.delLog('${x.id}', '${x.nombre}')">
-                        <span class="material-icons-round" style="font-size:18px">close</span>
-                    </button>
-                `;
-                h.appendChild(r);
-            });
+                    row.innerHTML = `
+                        <div class="log-info">
+                            <span style="font-weight:800; font-size:1.1rem; color: #fff;">${x.nombre}</span>
+                            <span class="log-date">${dateLabel}</span>
+                        </div>
+                        <button class="log-del" onclick="App.delLog('${x.id}')">
+                            <span class="material-icons-round">close</span>
+                        </button>
+                    `;
+                    list.appendChild(row);
+                });
+            }
         }
 
-        localStorage.setItem('k9.2_data', JSON.stringify({ p: App.data, l: App.logs }));
+        localStorage.setItem('k10_data', JSON.stringify({ p: App.data, l: App.logs }));
     },
 
     sync: async () => {
         try {
             const t = Date.now();
-            const [cR, sR] = await Promise.all([
+            const [rConf, rSum] = await Promise.all([
                 fetch(`${API}?action=get_config&t=${t}`),
                 fetch(`${API}?action=get_summary&t=${t}`)
             ]);
-            const conf = await cR.json();
-            const sum = await sR.json();
+            const conf = await rConf.json();
+            const sum = await rSum.json();
 
             if (conf.status === 'success') {
                 App.data = conf.passengers.filter(p => !App.deletedThisSession.has(p.nombre.toLowerCase()));
             }
-
             if (sum.status === 'success') {
-                const serverLogs = [...sum.trips].reverse();
-                // Merge logic to keep local fresh trips
+                const sLogs = [...sum.trips].reverse();
                 const now = Date.now();
-                const localRecent = App.logs.filter(l => {
-                    const isLocal = String(l.id).startsWith('temp');
-                    const isVeryFresh = (now - (l.timestamp || 0) < 5000);
-                    const notInServer = !serverLogs.find(s => String(s.id) == String(l.id));
-                    return isLocal && isVeryFresh && notInServer;
+                // Persist very recent local clicks before they hit server
+                const fresh = App.logs.filter(l => {
+                    return String(l.id).startsWith('temp') && (now - l.timestamp < 6000);
                 });
-                App.logs = [...localRecent, ...serverLogs];
+                App.logs = [...fresh, ...sLogs.filter(s => !fresh.find(f => f.nombre === s.nombre && Math.abs(f.timestamp - s.id) < 5000))];
+
+                // Cleanup duplicate temporary ones if server caught up
+                const unique = [];
+                const seen = new Set();
+                App.logs.forEach(l => {
+                    const key = l.id;
+                    if (!seen.has(key)) { unique.push(l); seen.add(key); }
+                });
+                App.logs = unique;
             }
             App.render();
         } catch (e) {
-            console.error("Sync error", e);
-            App.msg("Offline Sync");
+            console.error(e);
+            App.msg("Sincronización Offline");
         }
     },
 
@@ -131,44 +146,29 @@ const App = {
         const tempId = 'temp-' + Date.now();
 
         const newTrip = {
-            nombre: n,
-            precio: p,
-            time: time,
-            id: tempId,
-            timestamp: Date.now(),
-            date: now.toISOString().split('T')[0]
+            nombre: n, precio: p, time: time, id: tempId,
+            timestamp: Date.now(), date: now.toISOString().split('T')[0]
         };
 
         App.logs.unshift(newTrip);
         App.render();
-        App.msg(`+1 ${n}`);
+        App.msg(`REGISTRADO: ${n}`);
 
         try {
             await fetch(`${API}?action=add_trip&nombre=${encodeURIComponent(n)}&precio=${p}`, { method: 'POST' });
             setTimeout(() => App.sync(), 2000);
-        } catch (e) {
-            App.msg("Guardado Local");
-        }
+        } catch (e) { App.msg("Guardado en Memoria"); }
     },
 
-    delLog: async (id, name) => {
-        if (!confirm("¿Borrar este viaje?")) return;
+    delLog: async (id) => {
+        if (!confirm("¿Eliminar registro?")) return;
         App.logs = App.logs.filter(x => x.id != id);
         App.render();
-        App.msg("Borrando...");
         try {
             if (!String(id).startsWith('temp')) {
                 await fetch(`${API}?action=delete_trip&id=${id}`, { method: 'POST' });
             }
         } catch (e) { console.error(e); }
-    },
-
-    nav: (tab) => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
-        document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
-        if (tab === 'passengers') document.querySelectorAll('.dock-btn')[0].classList.add('active');
-        if (tab === 'history') document.querySelectorAll('.dock-btn')[1].classList.add('active');
     },
 
     openAdd: () => {
@@ -177,7 +177,7 @@ const App = {
         document.getElementById('price').value = '';
         document.getElementById('delBtn').style.display = 'none';
         document.getElementById('modal').classList.add('open');
-        setTimeout(() => document.getElementById('name').focus(), 150);
+        setTimeout(() => document.getElementById('name').focus(), 200);
     },
 
     edit: (n, p) => {
@@ -198,7 +198,6 @@ const App = {
         const n = document.getElementById('name').value;
         const p = document.getElementById('price').value;
         App.close();
-        App.msg("Guardando...");
         const act = old ? 'edit_passenger' : 'add_passenger';
         try {
             await fetch(`${API}?action=${act}&nombre=${n}&precio=${p}&oldName=${old}`, { method: 'POST' });
@@ -207,7 +206,7 @@ const App = {
     },
 
     del: async () => {
-        if (!confirm("¿Eliminar Pasajero?")) return;
+        if (!confirm("¿Eliminar Pasajero permanentemente?")) return;
         const n = document.getElementById('eid').value;
         App.close();
         App.deletedThisSession.add(n.toLowerCase());
@@ -215,24 +214,27 @@ const App = {
         App.render();
         try {
             await fetch(`${API}?action=delete_passenger&nombre=${encodeURIComponent(n)}`, { method: 'POST' });
-            setTimeout(() => App.sync(), 2000);
-        } catch (e) { App.msg("Error"); }
+            setTimeout(() => App.sync(), 2500);
+        } catch (e) { App.msg("Error de red"); }
     },
 
     resetHistory: () => {
-        if (!confirm("¿Resetear Bitácora?")) return;
+        if (!confirm("¿Limpiar toda la bitácora?")) return;
         App.logs = [];
         App.render();
         fetch(`${API}?action=reset_history`, { method: 'POST' });
+        App.msg("BITÁCORA REINICIADA");
     },
 
     msg: (t) => {
         const el = document.getElementById('toast');
         if (el) {
-            el.innerText = t; el.classList.add('vis');
-            setTimeout(() => el.classList.remove('vis'), 2000);
+            el.innerText = t;
+            el.classList.add('vis');
+            setTimeout(() => el.classList.remove('vis'), 2500);
         }
     }
 };
 
+window.App = App;
 window.onload = App.init;

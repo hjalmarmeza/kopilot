@@ -5,16 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kopilot</title>
-    <!-- CSS v7.0 -->
-    <link rel="stylesheet" href="style.css?v=7.0">
+    <title>Kopilot v10</title>
+
+    <!-- Design System -->
+    <link rel="stylesheet" href="style.css?v=10.0">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#FF9EAA">
+    <meta name="theme-color" content="#05070a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="icon.png">
-    <link rel="icon" type="image/png" href="icon.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Typography & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
 
@@ -23,29 +24,28 @@
     <!-- SCREEN 1: WELCOME INTRO -->
     <div id="intro-screen">
         <div class="intro-logo">KOPILOT</div>
-
         <div class="fingerprint-btn" onclick="App.start()">
             <span class="material-icons-round fingerprint-icon">fingerprint</span>
         </div>
-
-        <div class="start-text">Toca para iniciar</div>
+        <div class="start-text">Acceso Biométrico</div>
     </div>
 
-    <!-- MAIN APP CONTENT (Hidden initially) -->
+    <!-- MAIN APP CONTENT -->
     <div id="app-content">
 
         <!-- TAB 1: PASSENGERS -->
         <div id="tab-passengers" class="tab active">
             <header class="header">
-                <h1 class="h-title">Pasajeros</h1>
+                <h1 class="h-title">Dashboard</h1>
                 <div class="add-btn" onclick="App.openAdd()">
                     <span class="material-icons-round">add</span>
                 </div>
             </header>
 
             <div id="grid" class="grid">
-                <!-- Cards -->
-                <div style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.6;">Cargando...</div>
+                <!-- Data will render here -->
+                <div style="grid-column:1/-1; text-align:center; padding:100px; opacity:0.3; font-weight:700;">
+                    INICIANDO...</div>
             </div>
         </div>
 
@@ -53,69 +53,64 @@
         <div id="tab-history" class="tab">
             <header class="header">
                 <h1 class="h-title">Bitácora</h1>
-                <div class="add-btn" onclick="App.resetHistory()"
-                    style="background:rgba(255,255,255,0.8); color:#ff3b30;">
+                <div class="add-btn" onclick="App.resetHistory()" style="background:#ff4d4d; color:white;">
                     <span class="material-icons-round">delete_sweep</span>
                 </div>
             </header>
-
             <div id="history-list">
-                <!-- Logs -->
+                <!-- Logs will render here -->
             </div>
         </div>
 
         <!-- DOCK NAVIGATION -->
         <nav class="dock">
             <button class="dock-btn active" onclick="App.nav('passengers')">
-                <span class="material-icons-round dock-icon">grid_view</span>
-                Home
+                <span class="material-icons-round dock-icon">dashboard</span>
+                <span>HOME</span>
             </button>
             <button class="dock-btn" onclick="App.nav('history')">
-                <span class="material-icons-round dock-icon">history</span>
-                Logs
+                <span class="material-icons-round dock-icon">view_list</span>
+                <span>LOGS</span>
             </button>
         </nav>
-
     </div>
 
-    <!-- HIDDEN MODAL -->
+    <!-- MODAL FORM -->
     <div id="modal" class="modal">
         <div class="modal-box">
-            <h2 style="margin-top:0;">Editar</h2>
+            <h2 style="margin:0 0 25px 0; color:white; font-weight:900;">GESTOR</h2>
             <form onsubmit="App.saveP(event)">
                 <input type="hidden" id="eid">
-                <input type="text" id="name" class="inp" placeholder="Nombre" required autocomplete="off">
-                <input type="number" id="price" class="inp" placeholder="Precio" step="0.5" inputmode="decimal"
+                <input type="text" id="name" class="inp" placeholder="Nombre Pasajero" required autocomplete="off">
+                <input type="number" id="price" class="inp" placeholder="Precio ($)" step="0.5" inputmode="decimal"
                     required>
 
                 <div class="btns">
                     <button type="button" id="delBtn" class="btn btn-del" onclick="App.del()">
                         <span class="material-icons-round">delete</span>
                     </button>
-                    <button type="button" class="btn btn-sec" onclick="App.close()">Cancelar</button>
-                    <button type="submit" class="btn btn-pry">Guardar</button>
+                    <button type="button" class="btn btn-sec" onclick="App.close()">X</button>
+                    <button type="submit" class="btn btn-pry">GUARDAR</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast">Acción completada</div>
+    <div id="toast">OPERACIÓN EXITOSA</div>
 
-    <script src="app.js?v=7.0"></script>
+    <!-- Engine v10 -->
+    <script src="app.js?v=10.0"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        reg.onupdatefound = () => {
-                            const newWorker = reg.installing;
-                            newWorker.onstatechange = () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    window.location.reload();
-                                }
-                            };
-                        };
-                    });
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                reg.onupdatefound = () => {
+                    const next = reg.installing;
+                    next.onstatechange = () => {
+                        if (next.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
             });
         }
     </script>
