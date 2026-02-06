@@ -1,10 +1,14 @@
 :root {
-    --c-peach: #FFB38E;
-    --c-pink: #FF9EAA;
-    --c-purple: #E2BCFF;
-    --grad: linear-gradient(135deg, #FFB38E 0%, #FF9EAA 50%, #E2BCFF 100%);
-    --glass: rgba(255, 255, 255, 0.25);
-    --border: rgba(255, 255, 255, 0.4);
+    --c-bg: #0a0e14;
+    --c-card: #151b23;
+    --c-accent: #00f2ff;
+    /* Neón cyan */
+    --c-text: #ffffff;
+    --c-text-sec: #8b949e;
+    --grad: linear-gradient(145deg, #0a0e14, #1a202c);
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --relief-shadow: 8px 8px 16px #05070a, -4px -4px 12px rgba(255, 255, 255, 0.02);
 }
 
 * {
@@ -14,9 +18,8 @@
 }
 
 body {
-    background: linear-gradient(135deg, #FFB38E 0%, #FF9EAA 50%, #E2BCFF 100%);
-    background-attachment: fixed;
-    color: white;
+    background: var(--c-bg);
+    color: var(--c-text);
     font-family: 'Inter', sans-serif;
     margin: 0;
     height: 100vh;
@@ -47,7 +50,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: var(--grad);
+    background: var(--c-bg);
     transition: opacity 0.5s, transform 0.5s;
 }
 
@@ -188,24 +191,21 @@ body {
 
 .glass-card {
     aspect-ratio: 1 / 1;
-    background: rgba(255, 255, 255, 0.35);
-    /* Más opaco para mejor contraste */
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: var(--c-card);
+    border: 1px solid var(--border);
     border-radius: 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--relief-shadow);
     overflow: hidden;
-    /* Importante para el número de fondo */
 }
 
 .glass-card:active {
-    transform: scale(0.96);
-    background: rgba(255, 255, 255, 0.25);
+    transform: scale(0.98);
+    box-shadow: inset 4px 4px 8px #05070a, inset -2px -2px 6px rgba(255, 255, 255, 0.01);
 }
 
 .c-init {
@@ -217,14 +217,13 @@ body {
 }
 
 .c-name {
-    font-size: 1.4rem;
-    /* Nombre más grande */
+    font-size: 1.5rem;
     font-weight: 800;
-    color: #333;
-    /* Texto oscuro sobre el vidrio para leer mejor */
+    color: var(--c-text);
     z-index: 3;
     text-align: center;
-    padding: 0 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 1px;
 }
 
 .c-bg-number {
@@ -234,13 +233,14 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 8rem;
-    /* Número GIGANTE */
     font-weight: 950;
-    color: rgba(255, 158, 170, 0.4);
-    /* Color rosa suave y semi-transparente */
+    color: rgba(255, 255, 255, 0.04);
+    /* Blanco muy tenue para efecto futurista */
     font-family: 'Inter', sans-serif;
     z-index: 1;
     pointer-events: none;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
+    /* Borde claro para relieve */
 }
 
 .c-badge {
@@ -253,8 +253,9 @@ body {
     bottom: 12px;
     right: 12px;
     padding: 10px;
-    color: #333;
+    color: var(--c-accent);
     z-index: 4;
+    opacity: 0.8;
 }
 
 /* LOGS */
