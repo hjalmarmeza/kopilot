@@ -159,9 +159,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    /* Alineado al fondo para que el nombre quepa */
-    padding-bottom: 20px;
+    justify-content: center;
+    /* Centrado para control total */
+    padding: 15px;
     box-shadow: var(--relief-shadow);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -173,22 +173,19 @@ body {
 }
 
 .c-bg-number {
-    font-size: 6.5rem;
-    /* Reducido ligeramente para evitar que el nombre se salga */
+    font-size: 5.5rem;
+    /* Tamaño optimizado para visibilidad */
     font-weight: 950;
     color: #ffffff;
     text-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
     font-family: 'Inter', sans-serif;
-    line-height: 1;
-    margin-bottom: -5px;
-    /* Pegado más al nombre */
+    line-height: 0.9;
     z-index: 2;
     pointer-events: none;
 }
 
 .c-name {
     font-size: 1.1rem;
-    /* Ajustado para mejor balance */
     font-weight: 800;
     color: var(--c-text);
     text-transform: uppercase;
@@ -197,6 +194,9 @@ body {
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 10px;
+    /* Margen superior para separar del número */
     z-index: 3;
 }
 
@@ -229,12 +229,15 @@ body {
 }
 
 .log-name {
-    font-size: 2.2rem;
-    /* Tamaño masivo para legibilidad */
+    font-size: 1.8rem;
+    /* Reducido para evitar saltos de línea */
     font-weight: 900;
     color: #ffffff;
     letter-spacing: -1px;
     line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .log-info {
@@ -243,12 +246,13 @@ body {
 }
 
 .log-date {
-    font-size: 1.8rem;
-    /* Fecha y hora masivas */
+    font-size: 1.4rem;
+    /* Reducido para evitar saltos de línea */
     font-weight: 800;
     color: var(--c-accent);
-    margin-top: 12px;
+    margin-top: 8px;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .log-del {
