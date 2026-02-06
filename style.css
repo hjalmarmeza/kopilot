@@ -172,24 +172,20 @@ body {
 }
 
 .c-bg-number {
-    position: absolute;
-    top: 43%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     font-size: 7.5rem;
     font-weight: 950;
     color: #ffffff;
     text-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
     font-family: 'Inter', sans-serif;
+    line-height: 0.8;
+    /* Ajuste para que el nombre quepa debajo */
+    margin-top: 10px;
     z-index: 2;
     pointer-events: none;
 }
 
-
-
 .c-name {
     font-size: 1.2rem;
-    /* Más grande */
     font-weight: 800;
     color: var(--c-text);
     text-transform: uppercase;
@@ -198,9 +194,9 @@ body {
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: clip;
-    /* Usaremos JS para ajustar el tamaño si es largo */
-    margin-top: -5px;
+    margin-top: 15px;
+    /* Espacio claro debajo del número */
+    z-index: 3;
 }
 
 .c-menu {
