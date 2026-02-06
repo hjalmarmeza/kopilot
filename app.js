@@ -53,10 +53,10 @@ const App = {
                     card.className = 'glass-card';
 
                     // Lógica para achicar fuente si el nombre es largo
-                    let fontSize = '1.2rem';
-                    if (p.nombre.length > 10) fontSize = '1rem';
-                    if (p.nombre.length > 14) fontSize = '0.8rem';
-                    if (p.nombre.length > 18) fontSize = '0.7rem';
+                    let fontSize = '1.1rem';
+                    if (p.nombre.length > 10) fontSize = '0.9rem';
+                    if (p.nombre.length > 14) fontSize = '0.75rem';
+                    if (p.nombre.length > 18) fontSize = '0.65rem';
 
                     card.onclick = (e) => {
                         if (e.target.closest('.c-menu')) return;

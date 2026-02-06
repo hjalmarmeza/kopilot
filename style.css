@@ -159,11 +159,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    /* Alineado al fondo para que el nombre quepa */
+    padding-bottom: 20px;
     box-shadow: var(--relief-shadow);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
-    padding-top: 10px;
 }
 
 .glass-card:active {
@@ -172,30 +173,30 @@ body {
 }
 
 .c-bg-number {
-    font-size: 7.5rem;
+    font-size: 6.5rem;
+    /* Reducido ligeramente para evitar que el nombre se salga */
     font-weight: 950;
     color: #ffffff;
     text-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
     font-family: 'Inter', sans-serif;
-    line-height: 0.8;
-    /* Ajuste para que el nombre quepa debajo */
-    margin-top: 10px;
+    line-height: 1;
+    margin-bottom: -5px;
+    /* Pegado más al nombre */
     z-index: 2;
     pointer-events: none;
 }
 
 .c-name {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    /* Ajustado para mejor balance */
     font-weight: 800;
     color: var(--c-text);
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 1px;
     width: 90%;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    margin-top: 15px;
-    /* Espacio claro debajo del número */
     z-index: 3;
 }
 
