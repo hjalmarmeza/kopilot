@@ -54,21 +54,22 @@ const App = {
 
                     // Lógica para achicar fuente y asegurar que el nombre quepa SIEMPRE
                     let fontSize = '1.1rem';
-                    if (p.nombre.length > 8) fontSize = '0.9rem';
-                    if (p.nombre.length > 12) fontSize = '0.75rem';
-                    if (p.nombre.length > 16) fontSize = '0.65rem';
-                    if (p.nombre.length > 20) fontSize = '0.55rem';
+                    if (p.nombre.length > 7) fontSize = '0.9rem';
+                    if (p.nombre.length > 10) fontSize = '0.8rem';
+                    if (p.nombre.length > 13) fontSize = '0.7rem';
+                    if (p.nombre.length > 16) fontSize = '0.6rem';
+                    if (p.nombre.length > 20) fontSize = '0.5rem';
 
                     card.onclick = (e) => {
                         if (e.target.closest('.c-menu')) return;
                         App.add(p.nombre, p.precio);
                     };
                     card.innerHTML = `
+                        <div class="c-bg-number">${cnt}</div>
+                        <div class="c-name" style="font-size: ${fontSize}">${p.nombre}</div>
                         <div class="c-menu" onclick="App.edit('${p.nombre}',${p.precio})">
                             <span class="material-icons-round">more_horiz</span>
                         </div>
-                        <div class="c-bg-number">${cnt}</div>
-                        <div class="c-name" style="font-size: ${fontSize}">${p.nombre}</div>
                     `;
                     grid.appendChild(card);
                 });

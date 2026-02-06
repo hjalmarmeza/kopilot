@@ -173,15 +173,16 @@ body {
 }
 
 .c-bg-number {
-    font-size: 5.6rem;
+    font-size: 5.4rem;
+    /* Reducido un poco para dar espacio */
     font-weight: 950;
     color: #ffffff;
-    text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
     font-family: 'Inter', sans-serif;
     line-height: 1;
     z-index: 1;
     pointer-events: none;
-    margin-top: -5px;
+    margin-top: -10px;
 }
 
 .c-name {
@@ -190,31 +191,37 @@ body {
     color: var(--c-text);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    width: 95%;
+    width: 85%;
+    /* Un poco menos para no chocar */
     text-align: center;
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.1;
+    white-space: nowrap;
+    /* FUERZA UNA SOLA LÍNEA */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
     margin-top: 5px;
     z-index: 3;
-    overflow: visible;
 }
 
 .c-menu {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.05);
-    /* Círculo sutil */
+    top: 5px;
+    /* Más arriba */
+    right: 5px;
+    /* Más a la derecha */
+    color: #fff;
+    /* Más brillante para ver mejor */
+    background: rgba(0, 0, 0, 0.4);
+    /* Fondo para no perderse */
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 20;
-    /* Por encima de todo */
+    z-index: 100 !important;
+    /* MÁXIMA PRIORIDAD */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 /* LOGS */
