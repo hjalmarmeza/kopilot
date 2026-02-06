@@ -151,19 +151,20 @@ body {
 
 /* PASSENGER CARD */
 .glass-card {
-    aspect-ratio: 1 / 1.25;
-    /* Widget alargado verticalmente */
+    aspect-ratio: 1 / 1.45;
+    /* Mucho más alto para dar espacio real */
     background: var(--c-card);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 40px;
-    /* Bordes un poco más suaves */
+    border-radius: 42px;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    /* Alineado hacia abajo del espacio disponible */
+    /* Todo el contenido hacia abajo */
     padding: 20px;
+    padding-top: 55px;
+    /* ESPACIO FIJO Y LIBRE PARA LOS 3 PUNTOS */
     box-shadow: var(--relief-shadow);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -175,20 +176,21 @@ body {
 }
 
 .c-bg-number {
-    font-size: 6.2rem;
-    /* Recuperamos tamaño al haber más espacio vertical */
+    font-size: 5.7rem;
+    /* Reducido para asegurar que NO suba a la zona del menú */
     font-weight: 950;
     color: #ffffff;
     text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
     font-family: 'Inter', sans-serif;
-    line-height: 0.9;
+    line-height: 0.85;
     z-index: 1;
     pointer-events: none;
-    margin-bottom: 5px;
+    margin-bottom: 25px;
+    /* Distancia fija con el nombre */
 }
 
 .c-name {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: var(--c-text);
     text-transform: uppercase;
@@ -198,26 +200,24 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.2;
+    line-height: 1;
     z-index: 3;
-    padding-bottom: 5px;
+    margin-bottom: 10px;
+    /* Margen final inferior */
 }
 
 .c-menu {
     position: absolute;
     top: 15px;
     right: 15px;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
+    color: rgba(255, 255, 255, 0.4);
+    background: transparent;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100 !important;
-    /* MÁXIMA PRIORIDAD */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 50 !important;
 }
 
 /* LOGS */

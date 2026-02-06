@@ -6,7 +6,7 @@ const App = {
     deletedThisSession: new Set(),
 
     init: () => {
-        console.log("Kopilot 10.5 Premium Engine Initialized");
+        console.log("Kopilot 10.6 Premium Engine Initialized");
         const cache = localStorage.getItem('k10_data');
         if (cache) {
             const d = JSON.parse(cache);
