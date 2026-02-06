@@ -1,9 +1,9 @@
-const CACHE = 'kopilot-v10.2';
+const CACHE = 'kopilot-v10.5-final';
 const FILES = [
     './',
-    './index.html',
-    './style.css',
-    './app.js',
+    './index.html?v=10.5',
+    './style.css?v=10.5',
+    './app.js?v=10.5',
     './icon.png',
     './manifest.json'
 ];
@@ -14,25 +14,18 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-    e.waitUntil(caches.keys().then(k => Promise.all(k.map(key => key !== CACHE ? caches.delete(key) : null))));
+    // Elimina cualquier caché anterior para FORZAR la actualización
+    e.waitUntil(caches.keys().then(k => Promise.all(k.map(key => {
+        if (key !== CACHE) return caches.delete(key);
+    }))));
     self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
-    // API calls always network
-    if (e.request.url.includes('script.google.com')) {
-        return;
-    }
+    if (e.request.url.includes('script.google.com')) return;
 
-    // For other files, try cache then network
+    // Estrategia: Cache-First para velocidad, pero con actualización forzada arriba
     e.respondWith(
-        caches.match(e.request).then(r => {
-            return r || fetch(e.request).then(response => {
-                return caches.open(CACHE).then(cache => {
-                    cache.put(e.request, response.clone());
-                    return response;
-                });
-            });
-        })
+        caches.match(e.request).then(r => r || fetch(e.request))
     );
 });
