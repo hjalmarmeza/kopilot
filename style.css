@@ -188,18 +188,19 @@ body {
 
 .glass-card {
     aspect-ratio: 1 / 1;
-    /* Cuadrado perfecto */
-    background: rgba(255, 255, 255, 0.25);
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.35);
+    /* Más opaco para mejor contraste */
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    color: white;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    /* Importante para el número de fondo */
 }
 
 .glass-card:active {
@@ -216,37 +217,44 @@ body {
 }
 
 .c-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 10px;
+    font-size: 1.4rem;
+    /* Nombre más grande */
+    font-weight: 800;
+    color: #333;
+    /* Texto oscuro sobre el vidrio para leer mejor */
+    z-index: 3;
+    text-align: center;
+    padding: 0 10px;
 }
 
-.c-badge {
+.c-bg-number {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    background: white;
-    color: #000;
-    /* Negro puro para máximo contraste */
-    font-weight: 900;
-    min-width: 45px;
-    height: 45px;
-    border-radius: 50%;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
-    /* Número muy grande */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 5;
+    font-size: 8rem;
+    /* Número GIGANTE */
+    font-weight: 950;
+    color: rgba(255, 158, 170, 0.4);
+    /* Color rosa suave y semi-transparente */
+    font-family: 'Inter', sans-serif;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.c-badge {
+    display: none;
+    /* Ya no usamos el badge pequeño */
 }
 
 .c-menu {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 8px;
-    opacity: 0.6;
+    bottom: 12px;
+    right: 12px;
+    padding: 10px;
+    color: #333;
+    z-index: 4;
 }
 
 /* LOGS */

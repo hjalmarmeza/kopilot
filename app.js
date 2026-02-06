@@ -39,8 +39,6 @@ const App = {
         } else {
             App.data.forEach(p => {
                 const cnt = counts[p.nombre] || 0;
-                const init = p.nombre.charAt(0).toUpperCase();
-
                 const el = document.createElement('div');
                 el.className = 'glass-card';
                 el.onclick = (e) => {
@@ -48,11 +46,10 @@ const App = {
                     App.add(p.nombre, p.precio);
                 };
                 el.innerHTML = `
-                    <div class="c-badge">${cnt}</div>
+                    <div class="c-bg-number">${cnt}</div>
                     <div class="c-menu" onclick="App.edit('${p.nombre}',${p.precio})">
-                        <span class="material-icons-round" style="font-size:20px">more_horiz</span>
+                        <span class="material-icons-round" style="font-size:24px">more_horiz</span>
                     </div>
-                    <div class="c-init">${init}</div>
                     <div class="c-name">${p.nombre}</div>
                 `;
                 g.appendChild(el);
