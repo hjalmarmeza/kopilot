@@ -49,48 +49,83 @@ function handleRequest(e) {
       return response({ status: "success", passengers: passengers });
     }
 
-    // --- 2. REGISTRAR VIAJE (Pim Pam Pum) ---
-    if (action === "add_trip") {
-      const nombre = params.nombre;
-      const precio = params.precio; // El precio se envía desde la app (que lo leyó de config)
-      const fecha = new Date();
+    // --- 4. AGREGAR / EDITAR PASAJERO ---
+    if (action === "add_passenger" || action === "edit_passenger") {
+      const isEdit = (action === "edit_passenger");
+      const name = params.nombre;
+      const price = params.precio;
+      const oldName = params.oldName;
       
-      let sheet = ss.getSheetByName("Viajes");
+      let sheet = ss.getSheetByName("Config");
       if (!sheet) {
-        sheet = ss.insertSheet("Viajes");
-        sheet.appendRow(["Fecha", "Hora", "Pasajero", "Precio", "MesID", "Timestamp"]);
+        sheet = ss.insertSheet("Config");
+        sheet.appendRow(["Nombre", "Precio", "Activo"]);
       }
+      const data = sheet.getDataRange().getValues();
       
-      // Formato Mes (ej: "2024-02") para agrupar
-      const mesId = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM");
-      const hora = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "HH:mm:ss");
-      const dia = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM-dd");
-      
-      sheet.appendRow([dia, hora, nombre, precio, mesId, new Date()]);
-      
-      return response({ status: "success", message: "Viaje registrado", passenger: nombre });
+      let found = false;
+      if (isEdit && oldName) {
+        for (let i = 1; i < data.length; i++) {
+          if (data[i][0] == oldName) {
+             sheet.getRange(i + 1, 1).setValue(name);
+             sheet.getRange(i + 1, 2).setValue(price);
+             sheet.getRange(i + 1, 3).setValue(true);
+             found = true; 
+             break;
+          }
+        }
+      } else {
+        sheet.appendRow([name, price, true]);
+        found = true;
+      }
+      return response({ status: "success" });
     }
 
-     // --- 3. OBTENER RESUMEN (Para cobrar) ---
-    if (action === "get_summary") {
+    // --- 5. BORRAR PASAJERO (Desactivar) ---
+    if (action === "delete_passenger") {
+      const name = params.nombre;
+      let sheet = ss.getSheetByName("Config");
+      if (!sheet) return response({ status: "error", message: "No hay hoja Config" });
+      
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] == name) {
+           // Marcamos como Activo = false en la columna C
+           sheet.getRange(i + 1, 3).setValue(false); 
+           return response({ status: "success", message: "Pasajero desactivado" });
+        }
+      }
+      return response({ status: "error", message: "Pasajero no encontrado" });
+    }
+
+    // --- 6. BORRAR UN SOLO VIAJE ---
+    if (action === "delete_trip") {
+       const tripId = params.id;
        let sheet = ss.getSheetByName("Viajes");
-       if (!sheet) return response({ status: "success", trips: [] });
+       if (!sheet) return response({ status: "error" });
        
        const data = sheet.getDataRange().getValues();
-       data.shift(); // Quitar header
-       
-       // Devolvemos la data cruda y el frontend calcula los totales
-       // Optimizamos enviando solo lo necesario
-       const trips = data.map(row => ({
-         fecha: row[0],
-         nombre: row[2],
-         precio: row[3],
-         mesId: row[4]
-       }));
-       
-       return response({ status: "success", trips: trips });
+       for (let i = 1; i < data.length; i++) {
+         if (data[i][6] == tripId) { // Asumiendo que el ID está en la columna G
+             sheet.deleteRow(i + 1);
+             return response({ status: "success" });
+         }
+       }
+       return response({ status: "not_found" });
     }
-    
+
+    // --- 7. RESETEAR HISTORIAL ---
+    if (action === "reset_history") {
+      const sheet = ss.getSheetByName("Viajes");
+      if (sheet) {
+        const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyyMMdd_HHmm");
+        sheet.setName("Backup_" + timestamp);
+      }
+      const newSheet = ss.insertSheet("Viajes");
+      newSheet.appendRow(["Fecha", "Hora", "Pasajero", "Precio", "MesID", "Timestamp", "ID"]);
+      return response({ status: "success" });
+    }
+
     return response({ status: "error", message: "Acción desconocida" });
 
   } catch (err) {
