@@ -217,13 +217,15 @@ body {
 }
 
 .c-name {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--c-text);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--c-text-sec);
     z-index: 3;
     text-align: center;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    letter-spacing: 1px;
+    margin-top: 60px;
+    /* Posicionado debajo del número */
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .c-bg-number {
@@ -232,15 +234,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8rem;
-    font-weight: 950;
-    color: rgba(255, 255, 255, 0.04);
-    /* Blanco muy tenue para efecto futurista */
-    font-family: 'Inter', sans-serif;
-    z-index: 1;
+    font-size: 6.5rem;
+    /* Ajuste de tamaño para elegancia */
+    font-weight: 900;
+    color: #ffffff;
+    /* Blanco puro solicitado */
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 0 0 40px rgba(0, 242, 255, 0.1);
+    font-family: 'Outfit', sans-serif;
+    z-index: 2;
     pointer-events: none;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
-    /* Borde claro para relieve */
+    transition: all 0.3s ease;
 }
 
 .c-badge {
@@ -250,12 +253,12 @@ body {
 
 .c-menu {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
+    top: 15px;
+    right: 15px;
     padding: 10px;
     color: var(--c-accent);
     z-index: 4;
-    opacity: 0.8;
+    opacity: 0.5;
 }
 
 /* LOGS */
