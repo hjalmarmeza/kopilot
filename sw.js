@@ -1,9 +1,9 @@
-const CACHE = 'kopilot-v10.6-clear';
+const CACHE = 'kopilot-v10.8-layout-fix';
 const FILES = [
     './',
-    './index.html?v=10.6',
-    './style.css?v=10.6',
-    './app.js?v=10.6',
+    './index.html?v=10.8',
+    './style.css?v=10.8',
+    './app.js?v=10.8',
     './icon.png',
     './manifest.json'
 ];

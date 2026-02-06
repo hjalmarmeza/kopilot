@@ -143,28 +143,28 @@ body {
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-auto-rows: max-content;
+    /* Asegura que la fila respete el contenido */
     gap: 20px;
     overflow-y: auto;
-    padding: 10px 5px 120px 5px;
+    align-content: start;
+    /* Evita que el grid estire las filas si no hay suficientes */
+    padding: 10px 5px 140px 5px;
+    /* Más espacio al fondo para el tab bar */
     -webkit-overflow-scrolling: touch;
 }
 
 /* PASSENGER CARD */
 .glass-card {
-    aspect-ratio: 1 / 1.45;
-    /* Mucho más alto para dar espacio real */
+    height: 100%;
+    min-height: 220px;
+    /* Alto mínimo para evitar que se aplasten */
     background: var(--c-card);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 42px;
+    border-radius: 40px;
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    /* Todo el contenido hacia abajo */
-    padding: 20px;
-    padding-top: 55px;
-    /* ESPACIO FIJO Y LIBRE PARA LOS 3 PUNTOS */
     box-shadow: var(--relief-shadow);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -175,18 +175,29 @@ body {
     box-shadow: var(--pressed-shadow);
 }
 
+.c-num-zone {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 45px;
+    /* Crea el espacio fijo para los 3 puntos arriba */
+}
+
 .c-bg-number {
-    font-size: 5.7rem;
-    /* Reducido para asegurar que NO suba a la zona del menú */
+    font-size: 5.5rem;
     font-weight: 950;
     color: #ffffff;
     text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
     font-family: 'Inter', sans-serif;
-    line-height: 0.85;
+    line-height: 1;
     z-index: 1;
     pointer-events: none;
-    margin-bottom: 25px;
-    /* Distancia fija con el nombre */
+}
+
+.c-name-zone {
+    width: 100%;
+    padding: 10px 10px 20px 10px;
 }
 
 .c-name {
@@ -195,30 +206,27 @@ body {
     color: var(--c-text);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    width: 95%;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1;
+    line-height: 1.2;
     z-index: 3;
-    margin-bottom: 10px;
-    /* Margen final inferior */
 }
 
 .c-menu {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    color: rgba(255, 255, 255, 0.4);
-    background: transparent;
-    width: 40px;
-    height: 40px;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 50 !important;
+    color: rgba(255, 255, 255, 0.4);
+    z-index: 20 !important;
 }
+
 
 /* LOGS */
 #history-list {

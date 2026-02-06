@@ -6,7 +6,7 @@ const App = {
     deletedThisSession: new Set(),
 
     init: () => {
-        console.log("Kopilot 10.6 Premium Engine Initialized");
+        console.log("Kopilot 10.8 Premium Engine Initialized");
         const cache = localStorage.getItem('k10_data');
         if (cache) {
             const d = JSON.parse(cache);
@@ -65,10 +65,14 @@ const App = {
                         App.add(p.nombre, p.precio);
                     };
                     card.innerHTML = `
-                        <div class="c-bg-number">${cnt}</div>
-                        <div class="c-name" style="font-size: ${fontSize}">${p.nombre}</div>
                         <div class="c-menu" onclick="App.edit('${p.nombre}',${p.precio})">
                             <span class="material-icons-round">more_horiz</span>
+                        </div>
+                        <div class="c-num-zone">
+                            <div class="c-bg-number">${cnt}</div>
+                        </div>
+                        <div class="c-name-zone">
+                            <div class="c-name" style="font-size: ${fontSize}">${p.nombre}</div>
                         </div>
                     `;
                     grid.appendChild(card);
