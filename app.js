@@ -93,7 +93,7 @@ const App = {
 
                     row.innerHTML = `
                         <div class="log-info">
-                            <span style="font-weight:800; font-size:1.1rem; color: #fff;">${x.nombre}</span>
+                            <span class="log-name">${x.nombre}</span>
                             <span class="log-date">${dateLabel}</span>
                         </div>
                         <button class="log-del" onclick="App.delLog('${x.id}')">
